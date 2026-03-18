@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --color-apple-blue: #007AFF;
+  --color-apple-gray: #8E8E93;
+  --color-apple-bg: #F2F2F7;
+  --color-idd-blue: #007AFF;
+  --color-idd-gold: #FFD60A;
+}
+
+@layer base {
+  body {
+    @apply bg-apple-bg text-black antialiased selection:bg-apple-blue/20;
+    font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+  }
+}
+
+@layer components {
+  .apple-card {
+    @apply bg-white rounded-[24px] shadow-[0_4px_16px_rgba(0,0,0,0.04)] border border-black/[0.03];
+  }
+
+  .apple-button-primary {
+    @apply bg-apple-blue text-white font-semibold rounded-[14px] px-10 py-5 transition-all active:scale-[0.98] hover:brightness-110 disabled:opacity-50;
+  }
+
+  .apple-button-secondary {
+    @apply bg-black/[0.05] text-apple-blue font-semibold rounded-[14px] px-10 py-5 transition-all active:scale-[0.98] hover:bg-black/[0.08];
+  }
+
+  .apple-input {
+    @apply w-full bg-black/[0.03] border-none rounded-[14px] px-6 py-5 text-base focus:ring-2 focus:ring-apple-blue/20 transition-all outline-none placeholder:text-black/30;
+  }
+
+  .glass {
+    @apply backdrop-blur-2xl bg-white/80 border-b border-black/[0.05];
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background-color: white !important;
+    padding: 0 !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+
+  table {
+    width: 100% !important;
+    font-size: 10px !important;
+  }
+
+  th, td {
+    padding: 4px !important;
+  }
+}
+
+.print-only {
+  display: none;
+}
