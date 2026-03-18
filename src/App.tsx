@@ -13,7 +13,8 @@ import {
   Eye,
   Check,
   User as UserIcon,
-  LogOut
+  LogOut,
+  Printer
 } from 'lucide-react';
 import { OrderData, DoorOrderRow, GlobalSpecs, User } from './types';
 import { OrderHeader } from './components/OrderHeader';
@@ -316,27 +317,36 @@ export default function App() {
                 <div className="apple-card p-10 sm:p-16">
                   <OrderPreview order={order} />
                 </div>
-                <div className="flex flex-col sm:flex-row justify-between gap-6 pt-4">
+                <div className="flex flex-col sm:flex-row justify-between gap-6 pt-4 no-print">
                   <button onClick={prevStep} className="apple-button-secondary order-2 sm:order-1">Back to Edit</button>
-                  <button
-                    onClick={confirmSubmit}
-                    disabled={isSubmitted}
-                    className={`apple-button-primary flex items-center justify-center gap-3 order-1 sm:order-2 ${
-                      isSubmitted ? 'bg-emerald-500' : ''
-                    }`}
-                  >
-                    {isSubmitted ? (
-                      <>
-                        <CheckCircle2 className="w-6 h-6" strokeWidth={2.5} />
-                        Order Sent
-                      </>
-                    ) : (
-                      <>
-                        Confirm and Send
-                        <Send className="w-5 h-5" strokeWidth={2.5} />
-                      </>
-                    )}
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-4 order-1 sm:order-2">
+                    <button
+                      onClick={() => window.print()}
+                      className="apple-button-secondary flex items-center justify-center gap-3"
+                    >
+                      <Printer className="w-5 h-5" strokeWidth={2} />
+                      Print Order
+                    </button>
+                    <button
+                      onClick={confirmSubmit}
+                      disabled={isSubmitted}
+                      className={`apple-button-primary flex items-center justify-center gap-3 ${
+                        isSubmitted ? 'bg-emerald-500' : ''
+                      }`}
+                    >
+                      {isSubmitted ? (
+                        <>
+                          <CheckCircle2 className="w-6 h-6" strokeWidth={2.5} />
+                          Order Sent
+                        </>
+                      ) : (
+                        <>
+                          Confirm and Send
+                          <Send className="w-5 h-5" strokeWidth={2.5} />
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

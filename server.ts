@@ -2,7 +2,7 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
-import Database from "better-sqlite3";
+import { createClient } from "@libsql/client";
 import bcrypt from "bcryptjs";
 import { Resend } from "resend";
 import dotenv from "dotenv";
@@ -12,31 +12,39 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const db = new Database("database.db");
+const db = createClient({
+  url: process.env.TURSO_DATABASE_URL || "file:local.db",
+  authToken: process.env.TURSO_AUTH_TOKEN,
+});
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const ORDER_EMAIL = process.env.ORDER_EMAIL || "cromwellorders@iddoors.co.nz";
 const FROM_EMAIL = process.env.FROM_EMAIL || "portal@iddoors.co.nz";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "iddoors-admin";
 
 // Initialize database
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    email TEXT UNIQUE,
-    password TEXT,
-    name TEXT,
-    defaultMerchant TEXT,
-    defaultLocation TEXT
-  );
-
-  CREATE TABLE IF NOT EXISTS orders (
-    id TEXT PRIMARY KEY,
-    userId TEXT,
-    data TEXT,
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(userId) REFERENCES users(id)
-  );
-`);
+async function initDb() {
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE,
+      password TEXT,
+      name TEXT,
+      defaultMerchant TEXT,
+      defaultLocation TEXT
+    )
+  `);
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS orders (
+      id TEXT PRIMARY KEY,
+      userId TEXT,
+      data TEXT,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(userId) REFERENCES users(id)
+    )
+  `);
+}
 
 // ── Email helpers ────────────────────────────────────────────────────────────
 
@@ -189,6 +197,8 @@ function buildOrderEmailHtml(orderId: string, data: any, userName: string): stri
 // ── Server ───────────────────────────────────────────────────────────────────
 
 async function startServer() {
+  await initDb();
+
   const app = express();
   const PORT = parseInt(process.env.PORT || "3000", 10);
 
@@ -204,8 +214,10 @@ async function startServer() {
     const id = crypto.randomUUID();
     try {
       const hashed = await bcrypt.hash(password, 12);
-      const stmt = db.prepare("INSERT INTO users (id, email, password, name) VALUES (?, ?, ?, ?)");
-      stmt.run(id, email.toLowerCase().trim(), hashed, name.trim());
+      await db.execute({
+        sql: "INSERT INTO users (id, email, password, name) VALUES (?, ?, ?, ?)",
+        args: [id, email.toLowerCase().trim(), hashed, name.trim()],
+      });
       res.json({ id, email, name });
     } catch (error: any) {
       if (error.message?.includes("UNIQUE")) {
@@ -221,11 +233,15 @@ async function startServer() {
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
     }
-    const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email.toLowerCase().trim()) as any;
+    const result = await db.execute({
+      sql: "SELECT * FROM users WHERE email = ?",
+      args: [email.toLowerCase().trim()],
+    });
+    const user = result.rows[0] as any;
     if (!user) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
-    const valid = await bcrypt.compare(password, user.password);
+    const valid = await bcrypt.compare(password, user.password as string);
     if (!valid) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
@@ -240,8 +256,12 @@ async function startServer() {
 
   // ── User Profile ──────────────────────────────────────────────────────────
 
-  app.get("/api/user/profile/:id", (req, res) => {
-    const user = db.prepare("SELECT id, email, name, defaultMerchant, defaultLocation FROM users WHERE id = ?").get(req.params.id) as any;
+  app.get("/api/user/profile/:id", async (req, res) => {
+    const result = await db.execute({
+      sql: "SELECT id, email, name, defaultMerchant, defaultLocation FROM users WHERE id = ?",
+      args: [req.params.id],
+    });
+    const user = result.rows[0];
     if (user) {
       res.json(user);
     } else {
@@ -249,11 +269,13 @@ async function startServer() {
     }
   });
 
-  app.put("/api/user/profile/:id", (req, res) => {
+  app.put("/api/user/profile/:id", async (req, res) => {
     const { name, defaultMerchant, defaultLocation } = req.body;
     try {
-      db.prepare("UPDATE users SET name = ?, defaultMerchant = ?, defaultLocation = ? WHERE id = ?")
-        .run(name, defaultMerchant, defaultLocation, req.params.id);
+      await db.execute({
+        sql: "UPDATE users SET name = ?, defaultMerchant = ?, defaultLocation = ? WHERE id = ?",
+        args: [name, defaultMerchant, defaultLocation, req.params.id],
+      });
       res.json({ success: true });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
@@ -262,9 +284,12 @@ async function startServer() {
 
   // ── Orders ────────────────────────────────────────────────────────────────
 
-  app.get("/api/orders/:userId", (req, res) => {
-    const orders = db.prepare("SELECT * FROM orders WHERE userId = ? ORDER BY createdAt DESC").all(req.params.userId) as any[];
-    res.json(orders.map(o => ({ ...o, data: JSON.parse(o.data) })));
+  app.get("/api/orders/:userId", async (req, res) => {
+    const result = await db.execute({
+      sql: "SELECT * FROM orders WHERE userId = ? ORDER BY createdAt DESC",
+      args: [req.params.userId],
+    });
+    res.json(result.rows.map((o: any) => ({ ...o, data: JSON.parse(o.data as string) })));
   });
 
   app.post("/api/orders", async (req, res) => {
@@ -274,10 +299,17 @@ async function startServer() {
     }
     const id = crypto.randomUUID();
     try {
-      db.prepare("INSERT INTO orders (id, userId, data) VALUES (?, ?, ?)").run(id, userId, JSON.stringify(data));
+      await db.execute({
+        sql: "INSERT INTO orders (id, userId, data) VALUES (?, ?, ?)",
+        args: [id, userId, JSON.stringify(data)],
+      });
 
       // Fetch user name for email
-      const user = db.prepare("SELECT name, email FROM users WHERE id = ?").get(userId) as any;
+      const userResult = await db.execute({
+        sql: "SELECT name, email FROM users WHERE id = ?",
+        args: [userId],
+      });
+      const user = userResult.rows[0] as any;
       const userName = user?.name || "Unknown User";
 
       // Send email (non-blocking — don't fail the order if email fails)
@@ -297,6 +329,34 @@ async function startServer() {
       res.json({ id });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
+    }
+  });
+
+  // ── Admin ─────────────────────────────────────────────────────────────────
+
+  app.get("/api/admin/orders", async (req, res) => {
+    if (req.headers["x-admin-password"] !== ADMIN_PASSWORD) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+      const result = await db.execute(`
+        SELECT orders.id, orders.data, orders.createdAt, orders.userId,
+               users.name as userName, users.email as userEmail
+        FROM orders
+        LEFT JOIN users ON orders.userId = users.id
+        ORDER BY orders.createdAt DESC
+      `);
+      const orders = result.rows.map((o: any) => ({
+        id: o.id,
+        createdAt: o.createdAt,
+        userId: o.userId,
+        userName: o.userName,
+        userEmail: o.userEmail,
+        data: JSON.parse(o.data as string),
+      }));
+      res.json(orders);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
   });
 

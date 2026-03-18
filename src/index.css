@@ -43,7 +43,7 @@
   .no-print {
     display: none !important;
   }
-  
+
   body {
     background-color: white !important;
     padding: 0 !important;
@@ -64,6 +64,38 @@
 
   th, td {
     padding: 4px !important;
+  }
+
+  /* Remove all shadows and backdrops */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Make the order preview fill the page */
+  .apple-card {
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 8px !important;
+    padding: 24px !important;
+  }
+
+  .max-w-5xl {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  main {
+    overflow: visible !important;
+  }
+
+  /* Force white backgrounds */
+  .bg-apple-bg,
+  .bg-white\/50,
+  [class*="backdrop"] {
+    background-color: white !important;
   }
 }
 
