@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, User, MapPin, Hash, Calendar, Settings, Layers, CheckCircle2 } from 'lucide-react';
+import { Building2, User, MapPin, Settings, Layers, CheckCircle2 } from 'lucide-react';
 import { OrderData } from '../types';
 
 interface Props {
@@ -39,7 +39,11 @@ export const OrderPreview: React.FC<Props> = ({ order }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-10 pt-10 border-t border-black/[0.03]">
+          <div className="grid grid-cols-3 gap-8 pt-10 border-t border-black/[0.03]">
+            <div>
+              <h5 className="text-[12px] font-bold text-apple-gray uppercase tracking-tight mb-2">Merchant</h5>
+              <p className="text-[15px] font-bold text-black">{order.merchant || 'TBC'}</p>
+            </div>
             <div>
               <h5 className="text-[12px] font-bold text-apple-gray uppercase tracking-tight mb-2">Required By</h5>
               <p className="text-[15px] font-bold text-black">{order.requiredBy || 'TBC'}</p>
@@ -72,43 +76,69 @@ export const OrderPreview: React.FC<Props> = ({ order }) => {
               <p className="text-[12px] font-bold text-apple-gray uppercase tracking-tight">Drilling</p>
               <p className="text-[15px] font-bold text-black">{order.globalSpecs.drillingRequired ? 'Yes' : 'No'}</p>
             </div>
+            <div className="space-y-2">
+              <p className="text-[12px] font-bold text-apple-gray uppercase tracking-tight">Hardware Brand</p>
+              <p className="text-[15px] font-bold text-black">{order.globalSpecs.hardwareBrand || '—'}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-[12px] font-bold text-apple-gray uppercase tracking-tight">Robe Track</p>
+              <p className="text-[15px] font-bold text-black">{order.globalSpecs.robeTrackColour || '—'}</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Mini Schedule */}
+      {/* Full Door Schedule */}
       <div className="mb-16">
         <h5 className="text-[12px] font-bold text-apple-gray uppercase tracking-tight mb-8 flex items-center gap-3">
           <Layers className="w-4 h-4" strokeWidth={2.5} /> Door Schedule
         </h5>
         <div className="border border-black/[0.05] rounded-[32px] overflow-hidden">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-black/[0.02] border-b border-black/[0.05]">
-                <th className="p-6 text-[12px] font-bold text-apple-gray uppercase tracking-tight">Location</th>
-                <th className="p-6 text-[12px] font-bold text-apple-gray uppercase tracking-tight">Hanging</th>
-                <th className="p-6 text-[12px] font-bold text-apple-gray uppercase tracking-tight">Size (mm)</th>
-                <th className="p-6 text-[12px] font-bold text-apple-gray uppercase tracking-tight">Core</th>
-                <th className="p-6 text-[12px] font-bold text-apple-gray uppercase tracking-tight text-right">Qty</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-black/[0.03]">
-              {order.doors.map((door, i) => (
-                <tr key={door.id} className="hover:bg-black/[0.01] transition-colors">
-                  <td className="p-6 text-[15px] font-bold text-black">{door.location || `Door ${i+1}`}</td>
-                  <td className="p-6 text-[15px] font-bold text-apple-blue">{door.hanging}</td>
-                  <td className="p-6 text-[15px] font-medium text-black/60">{door.height}×{door.width}×{door.thickness}</td>
-                  <td className="p-6 text-[15px] font-medium text-black/60">{door.doorCore}</td>
-                  <td className="p-6 text-[15px] font-bold text-black text-right">1</td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-black/[0.02] border-b border-black/[0.05]">
+                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">#</th>
+                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Location</th>
+                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Hang</th>
+                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">H×W×T (mm)</th>
+                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Trim H×W</th>
+                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Gap/Gib</th>
+                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Finish</th>
+                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Core</th>
+                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Frame</th>
+                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Soft ×</th>
+                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Hw Code</th>
+                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Notes</th>
                 </tr>
-              ))}
-              {order.doors.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="p-16 text-center text-[15px] text-apple-gray font-medium italic">No doors added to schedule.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-black/[0.03]">
+                {order.doors.map((door, i) => (
+                  <tr key={door.id} className="hover:bg-black/[0.01] transition-colors">
+                    <td className="p-4 text-[13px] font-bold text-black/30">{i + 1}</td>
+                    <td className="p-4 text-[14px] font-bold text-black">{door.location || `Door ${i + 1}`}</td>
+                    <td className="p-4 text-[14px] font-bold text-apple-blue">{door.hanging}</td>
+                    <td className="p-4 text-[13px] font-medium text-black/60">{door.height}×{door.width}×{door.thickness}</td>
+                    <td className="p-4 text-[13px] font-medium text-black/60">
+                      {door.trimHeight && door.trimWidth ? `${door.trimHeight}×${door.trimWidth}` : '—'}
+                    </td>
+                    <td className="p-4 text-[13px] font-medium text-black/60">{door.floorGap}/{door.gibFrameSize}</td>
+                    <td className="p-4 text-[13px] font-medium text-black/60">{door.doorFinish}</td>
+                    <td className="p-4 text-[13px] font-medium text-black/60">{door.doorCore}</td>
+                    <td className="p-4 text-[13px] font-medium text-black/60">{door.frameType}</td>
+                    <td className="p-4 text-[13px] font-medium text-black/60">{door.softClose ? '✓' : '—'}</td>
+                    <td className="p-4 text-[13px] font-medium text-black/60">{door.hardwareCode || '—'}</td>
+                    <td className="p-4 text-[13px] font-medium text-black/60 max-w-[160px] truncate">{door.notes || '—'}</td>
+                  </tr>
+                ))}
+                {order.doors.length === 0 && (
+                  <tr>
+                    <td colSpan={12} className="p-16 text-center text-[15px] text-apple-gray font-medium italic">No doors added to schedule.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

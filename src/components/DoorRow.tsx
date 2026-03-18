@@ -1,6 +1,6 @@
 import React from 'react';
 import { Trash2, AlertCircle, Check } from 'lucide-react';
-import { DoorOrderRow, Hanging, DoorCore } from '../types';
+import { DoorOrderRow, Hanging, DoorCore, DoorFinish, FrameType } from '../types';
 
 interface Props {
   row: DoorOrderRow;
@@ -15,17 +15,18 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
 
   const DesktopRow = (
     <tr className="hidden md:table-row group hover:bg-black/[0.01] transition-colors border-b border-black/[0.05]">
-      <td className="p-6 text-center">
+      <td className="p-4 text-center">
         <span className="text-[12px] font-bold text-black/20 group-hover:text-apple-blue transition-colors">{index + 1}</span>
       </td>
-      
-      <td className="p-6 min-w-[240px]">
-        <div className="space-y-2">
+
+      {/* Location */}
+      <td className="p-4 min-w-[180px]">
+        <div className="space-y-1">
           <input
             type="text"
             value={row.location}
             onChange={(e) => onUpdate(row.id, 'location', e.target.value)}
-            className="w-full px-3 py-1.5 text-[15px] font-semibold bg-transparent border-none focus:ring-0 outline-none placeholder:text-black/10"
+            className="w-full px-3 py-1.5 text-[14px] font-semibold bg-transparent border-none focus:ring-0 outline-none placeholder:text-black/10"
             placeholder="Location"
           />
           {isBathroom && (
@@ -43,13 +44,14 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
         </div>
       </td>
 
-      <td className="p-6">
-        <div className="flex items-center gap-1.5 bg-black/[0.05] p-1 rounded-[12px] w-fit">
+      {/* Hanging */}
+      <td className="p-4">
+        <div className="flex items-center gap-1 bg-black/[0.05] p-1 rounded-[10px] w-fit">
           {(['LH', 'RH', 'Slider', 'Bi-Fold'] as Hanging[]).map((h) => (
             <button
               key={h}
               onClick={() => onUpdate(row.id, 'hanging', h)}
-              className={`px-4 py-1.5 text-[11px] font-bold rounded-[9px] transition-all ${
+              className={`px-3 py-1 text-[11px] font-bold rounded-[8px] transition-all whitespace-nowrap ${
                 row.hanging === h ? 'bg-white text-apple-blue shadow-sm' : 'text-black/40 hover:text-black/60'
               }`}
             >
@@ -59,72 +61,91 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
         </div>
       </td>
 
-      <td className="p-6">
-        <div className="flex items-center gap-1.5">
+      {/* Dimensions H × W × T */}
+      <td className="p-4">
+        <div className="flex items-center gap-1">
           <input
             type="text"
             value={row.height}
             onChange={(e) => onUpdate(row.id, 'height', e.target.value)}
-            className="w-16 px-2.5 py-1.5 text-[14px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            className="w-14 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
           />
-          <span className="text-black/10 font-bold">×</span>
+          <span className="text-black/10 font-bold text-[11px]">×</span>
           <input
             type="text"
             value={row.width}
             onChange={(e) => onUpdate(row.id, 'width', e.target.value)}
-            className="w-16 px-2.5 py-1.5 text-[14px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            className="w-14 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
           />
-          <span className="text-black/10 font-bold">×</span>
+          <span className="text-black/10 font-bold text-[11px]">×</span>
           <input
             type="text"
             value={row.thickness}
             onChange={(e) => onUpdate(row.id, 'thickness', e.target.value)}
-            className="w-12 px-2.5 py-1.5 text-[14px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            className="w-10 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
           />
         </div>
       </td>
 
-      <td className="p-6">
-        <div className="flex items-center gap-1.5">
+      {/* Trim H × W */}
+      <td className="p-4">
+        <div className="flex items-center gap-1">
           <input
             type="text"
             value={row.trimHeight}
             onChange={(e) => onUpdate(row.id, 'trimHeight', e.target.value)}
-            className="w-16 px-2.5 py-1.5 text-[14px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            className="w-14 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            placeholder="TH"
           />
-          <span className="text-black/10 font-bold">×</span>
+          <span className="text-black/10 font-bold text-[11px]">×</span>
           <input
             type="text"
             value={row.trimWidth}
             onChange={(e) => onUpdate(row.id, 'trimWidth', e.target.value)}
-            className="w-16 px-2.5 py-1.5 text-[14px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            className="w-14 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            placeholder="TW"
           />
         </div>
       </td>
 
-      <td className="p-6">
-        <div className="flex items-center gap-1.5">
+      {/* Gap / Gib */}
+      <td className="p-4">
+        <div className="flex items-center gap-1">
           <input
             type="text"
             value={row.floorGap}
             onChange={(e) => onUpdate(row.id, 'floorGap', e.target.value)}
-            className="w-12 px-2.5 py-1.5 text-[14px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            className="w-12 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
           />
-          <span className="text-black/10 font-bold">/</span>
+          <span className="text-black/10 font-bold text-[11px]">/</span>
           <input
             type="text"
             value={row.gibFrameSize}
             onChange={(e) => onUpdate(row.id, 'gibFrameSize', e.target.value)}
-            className="w-12 px-2.5 py-1.5 text-[14px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            className="w-12 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
           />
         </div>
       </td>
 
-      <td className="p-6">
+      {/* Door Finish */}
+      <td className="p-4">
+        <select
+          value={row.doorFinish}
+          onChange={(e) => onUpdate(row.id, 'doorFinish', e.target.value)}
+          className="w-full px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none appearance-none"
+        >
+          {(['Primed', 'White', 'RAW', 'Custom'] as DoorFinish[]).map((f) => (
+            <option key={f} value={f}>{f}</option>
+          ))}
+        </select>
+      </td>
+
+      {/* Door Core */}
+      <td className="p-4">
         <select
           value={row.doorCore}
           onChange={(e) => onUpdate(row.id, 'doorCore', e.target.value)}
-          className="w-full px-3 py-1.5 text-[14px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none appearance-none"
+          className="w-full px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none appearance-none"
         >
           {(['Honeycomb', 'Poly', 'Solid'] as DoorCore[]).map((c) => (
             <option key={c} value={c}>{c}</option>
@@ -132,33 +153,60 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
         </select>
       </td>
 
-      <td className="p-6">
+      {/* Frame Type */}
+      <td className="p-4">
+        <select
+          value={row.frameType}
+          onChange={(e) => onUpdate(row.id, 'frameType', e.target.value)}
+          className="w-full px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none appearance-none"
+        >
+          {(['Standard', 'Cavity', 'Bifold', 'Custom'] as FrameType[]).map((f) => (
+            <option key={f} value={f}>{f}</option>
+          ))}
+        </select>
+      </td>
+
+      {/* Soft Close */}
+      <td className="p-4">
         <button
           onClick={() => onUpdate(row.id, 'softClose', !row.softClose)}
           className={`w-full py-2 rounded-[10px] transition-all flex items-center justify-center ${
             row.softClose ? 'bg-emerald-500 text-white shadow-sm' : 'bg-black/[0.05] text-black/20'
           }`}
         >
-          <Check className={`w-5 h-5 ${row.softClose ? 'opacity-100' : 'opacity-0'}`} strokeWidth={4} />
+          <Check className={`w-4 h-4 ${row.softClose ? 'opacity-100' : 'opacity-0'}`} strokeWidth={4} />
         </button>
       </td>
 
-      <td className="p-6">
+      {/* Hardware Code */}
+      <td className="p-4 min-w-[120px]">
+        <input
+          type="text"
+          value={row.hardwareCode}
+          onChange={(e) => onUpdate(row.id, 'hardwareCode', e.target.value)}
+          className="w-full px-3 py-1.5 text-[13px] font-medium bg-transparent border-none focus:ring-0 outline-none placeholder:text-black/10"
+          placeholder="Code"
+        />
+      </td>
+
+      {/* Notes */}
+      <td className="p-4 min-w-[140px]">
         <input
           type="text"
           value={row.notes}
           onChange={(e) => onUpdate(row.id, 'notes', e.target.value)}
-          className="w-full px-3 py-1.5 text-[14px] font-medium bg-transparent border-none focus:ring-0 outline-none placeholder:text-black/10"
+          className="w-full px-3 py-1.5 text-[13px] font-medium bg-transparent border-none focus:ring-0 outline-none placeholder:text-black/10"
           placeholder="Notes"
         />
       </td>
 
-      <td className="p-6 text-right no-print">
+      {/* Delete */}
+      <td className="p-4 text-right no-print">
         <button
           onClick={() => onDelete(row.id)}
-          className="p-3 text-black/10 hover:text-red-500 hover:bg-red-50 rounded-[12px] transition-all"
+          className="p-2 text-black/10 hover:text-red-500 hover:bg-red-50 rounded-[10px] transition-all"
         >
-          <Trash2 className="w-5 h-5" strokeWidth={2} />
+          <Trash2 className="w-4 h-4" strokeWidth={2} />
         </button>
       </td>
     </tr>
@@ -205,6 +253,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
       )}
 
       <div className="space-y-6">
+        {/* Hanging */}
         <div className="space-y-2">
           <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Hanging Type</label>
           <div className="grid grid-cols-4 gap-2 bg-black/[0.05] p-1 rounded-[12px]">
@@ -222,108 +271,87 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
           </div>
         </div>
 
+        {/* Dimensions */}
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Size (H×W×T)</label>
             <div className="flex items-center gap-1">
-              <input
-                type="text"
-                value={row.height}
-                onChange={(e) => onUpdate(row.id, 'height', e.target.value)}
-                className="apple-input text-center"
-                placeholder="H"
-              />
+              <input type="text" value={row.height} onChange={(e) => onUpdate(row.id, 'height', e.target.value)} className="apple-input text-center" placeholder="H" />
               <span className="text-black/10 font-bold">×</span>
-              <input
-                type="text"
-                value={row.width}
-                onChange={(e) => onUpdate(row.id, 'width', e.target.value)}
-                className="apple-input text-center"
-                placeholder="W"
-              />
+              <input type="text" value={row.width} onChange={(e) => onUpdate(row.id, 'width', e.target.value)} className="apple-input text-center" placeholder="W" />
               <span className="text-black/10 font-bold">×</span>
-              <input
-                type="text"
-                value={row.thickness}
-                onChange={(e) => onUpdate(row.id, 'thickness', e.target.value)}
-                className="apple-input text-center w-20"
-                placeholder="T"
-              />
+              <input type="text" value={row.thickness} onChange={(e) => onUpdate(row.id, 'thickness', e.target.value)} className="apple-input text-center w-20" placeholder="T" />
             </div>
           </div>
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Trim (H×W)</label>
             <div className="flex items-center gap-1">
-              <input
-                type="text"
-                value={row.trimHeight}
-                onChange={(e) => onUpdate(row.id, 'trimHeight', e.target.value)}
-                className="apple-input text-center"
-                placeholder="TH"
-              />
+              <input type="text" value={row.trimHeight} onChange={(e) => onUpdate(row.id, 'trimHeight', e.target.value)} className="apple-input text-center" placeholder="TH" />
               <span className="text-black/10 font-bold">×</span>
-              <input
-                type="text"
-                value={row.trimWidth}
-                onChange={(e) => onUpdate(row.id, 'trimWidth', e.target.value)}
-                className="apple-input text-center"
-                placeholder="TW"
-              />
+              <input type="text" value={row.trimWidth} onChange={(e) => onUpdate(row.id, 'trimWidth', e.target.value)} className="apple-input text-center" placeholder="TW" />
             </div>
           </div>
         </div>
 
+        {/* Gap / Gib */}
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Gap / Gib</label>
             <div className="flex items-center gap-1">
-              <input
-                type="text"
-                value={row.floorGap}
-                onChange={(e) => onUpdate(row.id, 'floorGap', e.target.value)}
-                className="apple-input text-center"
-                placeholder="Gap"
-              />
+              <input type="text" value={row.floorGap} onChange={(e) => onUpdate(row.id, 'floorGap', e.target.value)} className="apple-input text-center" placeholder="Gap" />
               <span className="text-black/10 font-bold">/</span>
-              <input
-                type="text"
-                value={row.gibFrameSize}
-                onChange={(e) => onUpdate(row.id, 'gibFrameSize', e.target.value)}
-                className="apple-input text-center"
-                placeholder="Gib"
-              />
+              <input type="text" value={row.gibFrameSize} onChange={(e) => onUpdate(row.id, 'gibFrameSize', e.target.value)} className="apple-input text-center" placeholder="Gib" />
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Core & Soft</label>
-            <div className="flex gap-2">
-              <select
-                value={row.doorCore}
-                onChange={(e) => onUpdate(row.id, 'doorCore', e.target.value)}
-                className="apple-input appearance-none"
-              >
-                {(['Honeycomb', 'Poly', 'Solid'] as DoorCore[]).map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-              <button
-                onClick={() => onUpdate(row.id, 'softClose', !row.softClose)}
-                className={`px-4 rounded-[12px] transition-all flex items-center justify-center ${
-                  row.softClose ? 'bg-emerald-500 text-white shadow-sm' : 'bg-black/[0.05] text-black/20'
-                }`}
-              >
-                <Check className={`w-5 h-5 ${row.softClose ? 'opacity-100' : 'opacity-0'}`} strokeWidth={4} />
-              </button>
-            </div>
+            <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Hardware Code</label>
+            <input type="text" value={row.hardwareCode} onChange={(e) => onUpdate(row.id, 'hardwareCode', e.target.value)} className="apple-input" placeholder="Code" />
           </div>
         </div>
 
+        {/* Finish / Core / Frame */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Finish</label>
+            <select value={row.doorFinish} onChange={(e) => onUpdate(row.id, 'doorFinish', e.target.value)} className="apple-input appearance-none text-[13px]">
+              {(['Primed', 'White', 'RAW', 'Custom'] as DoorFinish[]).map((f) => <option key={f} value={f}>{f}</option>)}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Core</label>
+            <select value={row.doorCore} onChange={(e) => onUpdate(row.id, 'doorCore', e.target.value)} className="apple-input appearance-none text-[13px]">
+              {(['Honeycomb', 'Poly', 'Solid'] as DoorCore[]).map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Frame</label>
+            <select value={row.frameType} onChange={(e) => onUpdate(row.id, 'frameType', e.target.value)} className="apple-input appearance-none text-[13px]">
+              {(['Standard', 'Cavity', 'Bifold', 'Custom'] as FrameType[]).map((f) => <option key={f} value={f}>{f}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Soft Close */}
+        <div className="space-y-2">
+          <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Soft Close</label>
+          <button
+            onClick={() => onUpdate(row.id, 'softClose', !row.softClose)}
+            className={`w-full py-3 rounded-[12px] transition-all flex items-center justify-center gap-2 text-[13px] font-bold ${
+              row.softClose ? 'bg-emerald-500 text-white' : 'bg-black/[0.05] text-black/30'
+            }`}
+          >
+            <Check className={`w-4 h-4 ${row.softClose ? 'opacity-100' : 'opacity-0'}`} strokeWidth={4} />
+            {row.softClose ? 'Soft Close: Yes' : 'Soft Close: No'}
+          </button>
+        </div>
+
+        {/* Notes */}
         <div className="space-y-2">
           <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Notes</label>
           <textarea
             value={row.notes}
             onChange={(e) => onUpdate(row.id, 'notes', e.target.value)}
-            className="apple-input min-h-[100px] py-4"
+            className="apple-input min-h-[80px] py-4"
             placeholder="Special requirements..."
           />
         </div>

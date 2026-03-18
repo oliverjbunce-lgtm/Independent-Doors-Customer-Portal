@@ -1,7 +1,9 @@
 export type Hanging = 'LH' | 'RH' | 'Slider' | 'Bi-Fold';
 export type DoorCore = 'Poly' | 'Solid' | 'Honeycomb';
+export type DoorFinish = 'Primed' | 'White' | 'RAW' | 'Custom';
 export type JambMaterial = 'MDF' | 'Pine';
 export type JambStyle = 'Flat' | 'Groove';
+export type FrameType = 'Standard' | 'Cavity' | 'Bifold' | 'Custom';
 
 export interface GlobalSpecs {
   hingeDetails: string;
@@ -9,6 +11,7 @@ export interface GlobalSpecs {
   jambStyle: JambStyle;
   jambMaterial: JambMaterial;
   drillingRequired: boolean;
+  hardwareBrand: string;
   handleHeight: string;
 }
 
@@ -24,9 +27,9 @@ export interface DoorOrderRow {
   floorGap: string;
   gibFrameSize: string;
   softClose: boolean;
-  doorFinish: string;
+  doorFinish: DoorFinish;
   doorCore: DoorCore;
-  frameType: string;
+  frameType: FrameType;
   hardwareCode: string;
   notes: string;
 }

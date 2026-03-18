@@ -20,7 +20,7 @@ export const GlobalSpecsCard: React.FC<Props> = ({ specs, onChange }) => {
             <p className="text-[14px] text-apple-gray font-medium">Common hardware settings</p>
           </div>
         </div>
-        
+
         <div className="space-y-8">
           <div className="grid grid-cols-2 gap-8">
             <div className="space-y-3">
@@ -47,6 +47,16 @@ export const GlobalSpecsCard: React.FC<Props> = ({ specs, onChange }) => {
 
           <div className="grid grid-cols-2 gap-8">
             <div className="space-y-3">
+              <label className="text-[13px] font-semibold text-black/60 ml-1">Hardware Brand <span className="text-black/20 font-normal">(Optional)</span></label>
+              <input
+                type="text"
+                value={specs.hardwareBrand}
+                onChange={(e) => onChange('hardwareBrand', e.target.value)}
+                className="apple-input"
+                placeholder="e.g. Gainsborough"
+              />
+            </div>
+            <div className="space-y-3">
               <label className="text-[13px] font-semibold text-black/60 ml-1">Handle Height <span className="text-red-500">*</span></label>
               <div className="relative">
                 <input
@@ -60,26 +70,27 @@ export const GlobalSpecsCard: React.FC<Props> = ({ specs, onChange }) => {
                 <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-black/20">MM</span>
               </div>
             </div>
-            <div className="space-y-3">
-              <label className="text-[13px] font-semibold text-black/60 ml-1">Drilling</label>
-              <div className="bg-black/[0.05] p-1.5 rounded-[14px] flex">
-                <button
-                  onClick={() => onChange('drillingRequired', true)}
-                  className={`flex-1 py-2.5 rounded-[11px] text-[14px] font-bold transition-all ${
-                    specs.drillingRequired ? 'bg-white text-apple-blue shadow-sm' : 'text-black/40'
-                  }`}
-                >
-                  Yes
-                </button>
-                <button
-                  onClick={() => onChange('drillingRequired', false)}
-                  className={`flex-1 py-2.5 rounded-[11px] text-[14px] font-bold transition-all ${
-                    !specs.drillingRequired ? 'bg-white text-apple-blue shadow-sm' : 'text-black/40'
-                  }`}
-                >
-                  No
-                </button>
-              </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[13px] font-semibold text-black/60 ml-1">Drilling Required</label>
+            <div className="bg-black/[0.05] p-1.5 rounded-[14px] flex">
+              <button
+                onClick={() => onChange('drillingRequired', true)}
+                className={`flex-1 py-2.5 rounded-[11px] text-[14px] font-bold transition-all ${
+                  specs.drillingRequired ? 'bg-white text-apple-blue shadow-sm' : 'text-black/40'
+                }`}
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => onChange('drillingRequired', false)}
+                className={`flex-1 py-2.5 rounded-[11px] text-[14px] font-bold transition-all ${
+                  !specs.drillingRequired ? 'bg-white text-apple-blue shadow-sm' : 'text-black/40'
+                }`}
+              >
+                No
+              </button>
             </div>
           </div>
         </div>

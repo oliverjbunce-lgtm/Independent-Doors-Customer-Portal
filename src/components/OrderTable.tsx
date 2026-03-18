@@ -36,22 +36,25 @@ export const OrderTable: React.FC<Props> = ({ data, onAddRow, onUpdateRow, onDel
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-black/[0.02] border-b border-black/[0.05]">
-              <th className="p-6 text-[12px] font-bold text-black/40 uppercase tracking-tight text-center w-16">#</th>
-              <th className="p-6 text-[12px] font-bold text-black/40 uppercase tracking-tight">Location</th>
-              <th className="p-6 text-[12px] font-bold text-black/40 uppercase tracking-tight">Hanging</th>
-              <th className="p-6 text-[12px] font-bold text-black/40 uppercase tracking-tight">Dimensions</th>
-              <th className="p-6 text-[12px] font-bold text-black/40 uppercase tracking-tight">Trim</th>
-              <th className="p-6 text-[12px] font-bold text-black/40 uppercase tracking-tight">Gap/Gib</th>
-              <th className="p-6 text-[12px] font-bold text-black/40 uppercase tracking-tight">Core</th>
-              <th className="p-6 text-[12px] font-bold text-black/40 uppercase tracking-tight">Soft Close</th>
-              <th className="p-6 text-[12px] font-bold text-black/40 uppercase tracking-tight">Notes</th>
-              <th className="p-6 text-[12px] font-bold text-black/40 uppercase tracking-tight text-right no-print">Actions</th>
+              <th className="p-4 text-[11px] font-bold text-black/40 uppercase tracking-tight text-center w-10">#</th>
+              <th className="p-4 text-[11px] font-bold text-black/40 uppercase tracking-tight">Location</th>
+              <th className="p-4 text-[11px] font-bold text-black/40 uppercase tracking-tight">Hanging</th>
+              <th className="p-4 text-[11px] font-bold text-black/40 uppercase tracking-tight">H×W×T (mm)</th>
+              <th className="p-4 text-[11px] font-bold text-black/40 uppercase tracking-tight">Trim H×W</th>
+              <th className="p-4 text-[11px] font-bold text-black/40 uppercase tracking-tight">Gap/Gib</th>
+              <th className="p-4 text-[11px] font-bold text-black/40 uppercase tracking-tight">Finish</th>
+              <th className="p-4 text-[11px] font-bold text-black/40 uppercase tracking-tight">Core</th>
+              <th className="p-4 text-[11px] font-bold text-black/40 uppercase tracking-tight">Frame</th>
+              <th className="p-4 text-[11px] font-bold text-black/40 uppercase tracking-tight">Soft ×</th>
+              <th className="p-4 text-[11px] font-bold text-black/40 uppercase tracking-tight">Hw Code</th>
+              <th className="p-4 text-[11px] font-bold text-black/40 uppercase tracking-tight">Notes</th>
+              <th className="p-4 text-[11px] font-bold text-black/40 uppercase tracking-tight text-right no-print">Del</th>
             </tr>
           </thead>
           <tbody>
             {data.doors.length === 0 ? (
               <tr>
-                <td colSpan={10} className="p-20 text-center">
+                <td colSpan={13} className="p-20 text-center">
                   <div className="flex flex-col items-center gap-3 text-black/20">
                     <TableIcon className="w-12 h-12" strokeWidth={1} />
                     <p className="text-sm font-semibold">No doors added yet</p>
