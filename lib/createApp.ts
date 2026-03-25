@@ -116,18 +116,26 @@ const DEFAULT_GLOBAL_SPECS = {
   handleHeight: '1000',
 };
 
-// ── App factory ───────────────────────────────────────────────────────────────
+// ── DB singleton — lazy, created on first request ─────────────────────────────
 
-export function createApp() {
-  const db = createClient({
-    url: process.env.TURSO_DATABASE_URL || "file:local.db",
-    authToken: process.env.TURSO_AUTH_TOKEN,
-  });
+let _db: ReturnType<typeof createClient> | null = null;
+let _dbReady: Promise<void> | null = null;
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
+function getDb() {
+  if (!_db) {
+    _db = createClient({
+      url: process.env.TURSO_DATABASE_URL || "file:local.db",
+      authToken: process.env.TURSO_AUTH_TOKEN,
+    });
+  }
+  return _db;
+}
 
-  // Initialise DB tables — idempotent, safe on every cold start
-  const dbReady = (async () => {
+function ensureDbReady(): Promise<void> {
+  if (_dbReady) return _dbReady;
+
+  const db = getDb();
+  _dbReady = (async () => {
     await db.execute(`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
@@ -158,6 +166,14 @@ export function createApp() {
     }
   })();
 
+  return _dbReady;
+}
+
+// ── App factory ───────────────────────────────────────────────────────────────
+
+export function createApp() {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
   const app = express();
   app.use(express.json());
 
@@ -170,9 +186,15 @@ export function createApp() {
     next();
   });
 
-  // Ensure DB is ready before any route handles a request
+  // Ensure DB is ready before any route handles a request (lazy init)
   app.use(async (_req, _res, next) => {
-    try { await dbReady; next(); } catch (err) { next(err); }
+    try {
+      await ensureDbReady();
+      next();
+    } catch (err: any) {
+      console.error('[db] Initialisation failed:', err?.message);
+      _res.status(503).json({ error: 'Database initialisation failed', detail: err?.message });
+    }
   });
 
   // ── Helper ──────────────────────────────────────────────────────────────────
@@ -204,6 +226,7 @@ export function createApp() {
     }
     const id = crypto.randomUUID();
     try {
+      const db = getDb();
       const hashed = await bcrypt.hash(password, 12);
       await db.execute({
         sql: `INSERT INTO users (id, email, password, name, defaultGlobalSpecs, role, company)
@@ -232,6 +255,7 @@ export function createApp() {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: "Email and password are required" });
 
+    const db = getDb();
     const result = await db.execute({
       sql: "SELECT * FROM users WHERE email = ?",
       args: [email.toLowerCase().trim()],
@@ -247,6 +271,7 @@ export function createApp() {
   // ── User Profile ────────────────────────────────────────────────────────────
 
   app.get("/api/user/profile/:id", async (req, res) => {
+    const db = getDb();
     const result = await db.execute({
       sql: "SELECT * FROM users WHERE id = ?",
       args: [req.params.id],
@@ -259,6 +284,7 @@ export function createApp() {
   app.put("/api/user/profile/:id", async (req, res) => {
     const { name, defaultMerchant, defaultLocation, defaultGlobalSpecs, role, company } = req.body;
     try {
+      const db = getDb();
       await db.execute({
         sql: `UPDATE users
               SET name = ?, defaultMerchant = ?, defaultLocation = ?,
@@ -283,6 +309,7 @@ export function createApp() {
   // ── Orders ──────────────────────────────────────────────────────────────────
 
   app.get("/api/orders/:userId", async (req, res) => {
+    const db = getDb();
     const result = await db.execute({
       sql: "SELECT * FROM orders WHERE userId = ? ORDER BY createdAt DESC",
       args: [req.params.userId],
@@ -292,6 +319,7 @@ export function createApp() {
 
   app.get("/api/orders/drafts/:userId", async (req, res) => {
     try {
+      const db = getDb();
       const result = await db.execute({
         sql: "SELECT * FROM orders WHERE userId = ? AND JSON_EXTRACT(data, '$.isDraft') = 1 ORDER BY createdAt DESC",
         args: [req.params.userId],
@@ -308,6 +336,7 @@ export function createApp() {
 
     const id = crypto.randomUUID();
     try {
+      const db = getDb();
       await db.execute({
         sql: "INSERT INTO orders (id, userId, data) VALUES (?, ?, ?)",
         args: [id, userId, JSON.stringify(data)],
@@ -347,6 +376,7 @@ export function createApp() {
     }
 
     try {
+      const db = getDb();
       const userResult = await db.execute({
         sql: "SELECT * FROM users WHERE email = ?",
         args: [email.toLowerCase().trim()],
@@ -375,8 +405,6 @@ export function createApp() {
         args: [orderId, user.id, JSON.stringify(orderData)],
       });
 
-      // No email notification for draft imports
-
       res.json({ id: orderId, userId: user.id, portalUrl: "/orders/draft/" + orderId });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -390,6 +418,7 @@ export function createApp() {
       return res.status(401).json({ error: "Unauthorized" });
     }
     try {
+      const db = getDb();
       const result = await db.execute(`
         SELECT orders.id, orders.data, orders.createdAt, orders.userId,
                users.name as userName, users.email as userEmail
@@ -404,6 +433,12 @@ export function createApp() {
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
+  });
+
+  // ── Top-level error handler ─────────────────────────────────────────────────
+  app.use((err: any, _req: any, res: any, _next: any) => {
+    console.error('[express] Unhandled error:', err?.message || err);
+    res.status(500).json({ error: err?.message || 'Internal server error' });
   });
 
   return app;

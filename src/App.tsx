@@ -5,7 +5,6 @@ import {
   Send,
   CheckCircle2,
   X,
-  DoorOpen,
   ArrowRight,
   ArrowLeft,
   Settings,
@@ -230,15 +229,9 @@ export default function App() {
       {/* ── Navigation / Header ─────────────────────────────────────────────── */}
       <header className="glass sticky top-0 z-50 no-print shrink-0 px-6 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className="bg-apple-blue p-2 rounded-[10px] shadow-sm cursor-pointer"
-              onClick={() => setCurrentStep('INFO')}
-            >
-              <DoorOpen className="text-white w-5 h-5" strokeWidth={2.5} />
-            </div>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentStep('INFO')}>
+            <img src="https://www.iddoors.co.nz/wp-content/uploads/2022/08/ID-logo.png" alt="Independent Doors" className="h-10 w-auto" />
             <div>
-              <h1 className="text-base font-bold tracking-tight text-black">Independent Doors</h1>
               <p className="text-[10px] text-apple-gray font-semibold uppercase tracking-wider">Order Portal</p>
             </div>
           </div>

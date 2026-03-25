@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  DoorOpen, Lock, Mail, ArrowRight, ArrowLeft, ShieldCheck,
+  Lock, Mail, ArrowRight, ArrowLeft, ShieldCheck,
   User as UserIcon, Store, Wrench, Shield, Check,
 } from 'lucide-react';
 import { User, UserRole, GlobalSpecs } from '../types';
@@ -252,8 +252,8 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
           <div className="apple-card p-10 flex flex-col items-center">
 
             {/* Logo */}
-            <div className="bg-apple-blue p-4 rounded-[22%] shadow-lg shadow-apple-blue/20 mb-6">
-              <DoorOpen className="text-white w-10 h-10" strokeWidth={2.5} />
+            <div className="mb-6">
+              <img src="https://www.iddoors.co.nz/wp-content/uploads/2022/08/ID-logo.png" alt="Independent Doors" className="h-10 w-auto" />
             </div>
 
             {/* Title */}

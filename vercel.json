@@ -5,9 +5,14 @@
     "api/index.ts": {
       "memory": 512,
       "maxDuration": 30
+    },
+    "api/health.ts": {
+      "memory": 128,
+      "maxDuration": 10
     }
   },
   "rewrites": [
+    { "source": "/api/health", "destination": "/api/health" },
     { "source": "/api/(.*)", "destination": "/api/index" },
     { "source": "/((?!api).*)", "destination": "/index.html" }
   ]
