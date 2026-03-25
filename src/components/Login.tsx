@@ -253,7 +253,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
 
             {/* Logo */}
             <div className="mb-6">
-              <img src="https://www.iddoors.co.nz/wp-content/uploads/2022/08/ID-logo.png" alt="Independent Doors" className="h-10 w-auto" />
+              <img src="https://iddoors.co.nz/wp-content/uploads/2023/11/logo.svg" alt="Independent Doors" className="h-10 w-auto" />
             </div>
 
             {/* Title */}
