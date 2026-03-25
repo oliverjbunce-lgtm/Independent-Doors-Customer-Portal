@@ -160,7 +160,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
           onChange={(e) => onUpdate(row.id, 'frameType', e.target.value)}
           className="w-full px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none appearance-none"
         >
-          {(['Standard', 'Cavity', 'Bifold', 'Custom'] as FrameType[]).map((f) => (
+          {(['Standard', 'Cavity', 'Bifold', 'Wardrobe', 'Custom'] as FrameType[]).map((f) => (
             <option key={f} value={f}>{f}</option>
           ))}
         </select>
@@ -326,7 +326,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Frame</label>
             <select value={row.frameType} onChange={(e) => onUpdate(row.id, 'frameType', e.target.value)} className="apple-input appearance-none text-[13px]">
-              {(['Standard', 'Cavity', 'Bifold', 'Custom'] as FrameType[]).map((f) => <option key={f} value={f}>{f}</option>)}
+              {(['Standard', 'Cavity', 'Bifold', 'Wardrobe', 'Custom'] as FrameType[]).map((f) => <option key={f} value={f}>{f}</option>)}
             </select>
           </div>
         </div>
