@@ -213,23 +213,24 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
   );
 
   const MobileCard = (
-    <div className="md:hidden p-6 space-y-6 bg-white border-b border-black/[0.05] last:border-0">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-apple-blue/10 text-apple-blue text-[11px] font-bold">
+    <div className="md:hidden p-5 space-y-5 bg-white border-b border-black/[0.05] last:border-0">
+      {/* Header row: number, location, delete */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-apple-blue/10 text-apple-blue text-[11px] font-bold shrink-0">
             {index + 1}
           </span>
           <input
             type="text"
             value={row.location}
             onChange={(e) => onUpdate(row.id, 'location', e.target.value)}
-            className="text-lg font-bold text-black bg-transparent border-none focus:ring-0 p-0 placeholder:text-black/10"
-            placeholder="Location"
+            className="text-base font-bold text-black bg-transparent border-none focus:ring-0 p-0 placeholder:text-black/20 min-w-0 w-full"
+            placeholder="Door Location"
           />
         </div>
         <button
           onClick={() => onDelete(row.id)}
-          className="p-2 text-black/10 hover:text-red-500 hover:bg-red-50 rounded-[10px] transition-all"
+          className="p-2.5 text-black/20 hover:text-red-500 hover:bg-red-50 rounded-[10px] transition-all shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
         >
           <Trash2 className="w-5 h-5" strokeWidth={2} />
         </button>
@@ -252,7 +253,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
         </div>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* Hanging */}
         <div className="space-y-2">
           <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Hanging Type</label>
@@ -261,7 +262,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
               <button
                 key={h}
                 onClick={() => onUpdate(row.id, 'hanging', h)}
-                className={`py-2.5 text-[11px] font-bold rounded-[10px] transition-all ${
+                className={`py-3 text-[11px] font-bold rounded-[10px] transition-all min-h-[44px] ${
                   row.hanging === h ? 'bg-white text-apple-blue shadow-sm' : 'text-black/40'
                 }`}
               >
@@ -271,63 +272,79 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
           </div>
         </div>
 
-        {/* Dimensions */}
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Size (H×W×T)</label>
-            <div className="flex items-center gap-1">
-              <input type="text" value={row.height} onChange={(e) => onUpdate(row.id, 'height', e.target.value)} className="apple-input text-center" placeholder="H" />
-              <span className="text-black/10 font-bold">×</span>
-              <input type="text" value={row.width} onChange={(e) => onUpdate(row.id, 'width', e.target.value)} className="apple-input text-center" placeholder="W" />
-              <span className="text-black/10 font-bold">×</span>
-              <input type="text" value={row.thickness} onChange={(e) => onUpdate(row.id, 'thickness', e.target.value)} className="apple-input text-center w-20" placeholder="T" />
+        {/* Dimensions — each in its own labeled field for readability */}
+        <div className="space-y-2">
+          <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Size (mm)</label>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-black/30 ml-1">Height</span>
+              <input type="text" value={row.height} onChange={(e) => onUpdate(row.id, 'height', e.target.value)}
+                className="apple-input text-center px-2 text-sm" placeholder="H" />
             </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Trim (H×W)</label>
-            <div className="flex items-center gap-1">
-              <input type="text" value={row.trimHeight} onChange={(e) => onUpdate(row.id, 'trimHeight', e.target.value)} className="apple-input text-center" placeholder="TH" />
-              <span className="text-black/10 font-bold">×</span>
-              <input type="text" value={row.trimWidth} onChange={(e) => onUpdate(row.id, 'trimWidth', e.target.value)} className="apple-input text-center" placeholder="TW" />
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-black/30 ml-1">Width</span>
+              <input type="text" value={row.width} onChange={(e) => onUpdate(row.id, 'width', e.target.value)}
+                className="apple-input text-center px-2 text-sm" placeholder="W" />
+            </div>
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-black/30 ml-1">Thick</span>
+              <input type="text" value={row.thickness} onChange={(e) => onUpdate(row.id, 'thickness', e.target.value)}
+                className="apple-input text-center px-2 text-sm" placeholder="T" />
             </div>
           </div>
         </div>
 
-        {/* Gap / Gib */}
-        <div className="grid grid-cols-2 gap-6">
+        {/* Trim & Gap/Gib */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Trim H × W</label>
+            <div className="flex items-center gap-1">
+              <input type="text" value={row.trimHeight} onChange={(e) => onUpdate(row.id, 'trimHeight', e.target.value)}
+                className="apple-input text-center px-2 text-sm" placeholder="TH" />
+              <span className="text-black/20 font-bold text-sm">×</span>
+              <input type="text" value={row.trimWidth} onChange={(e) => onUpdate(row.id, 'trimWidth', e.target.value)}
+                className="apple-input text-center px-2 text-sm" placeholder="TW" />
+            </div>
+          </div>
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Gap / Gib</label>
             <div className="flex items-center gap-1">
-              <input type="text" value={row.floorGap} onChange={(e) => onUpdate(row.id, 'floorGap', e.target.value)} className="apple-input text-center" placeholder="Gap" />
-              <span className="text-black/10 font-bold">/</span>
-              <input type="text" value={row.gibFrameSize} onChange={(e) => onUpdate(row.id, 'gibFrameSize', e.target.value)} className="apple-input text-center" placeholder="Gib" />
+              <input type="text" value={row.floorGap} onChange={(e) => onUpdate(row.id, 'floorGap', e.target.value)}
+                className="apple-input text-center px-2 text-sm" placeholder="Gap" />
+              <span className="text-black/20 font-bold text-sm">/</span>
+              <input type="text" value={row.gibFrameSize} onChange={(e) => onUpdate(row.id, 'gibFrameSize', e.target.value)}
+                className="apple-input text-center px-2 text-sm" placeholder="Gib" />
             </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Hardware Code</label>
-            <input type="text" value={row.hardwareCode} onChange={(e) => onUpdate(row.id, 'hardwareCode', e.target.value)} className="apple-input" placeholder="Code" />
           </div>
         </div>
 
-        {/* Finish / Core / Frame */}
-        <div className="grid grid-cols-3 gap-4">
+        {/* Finish / Core / Frame — 2-col + 1 stacked */}
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Finish</label>
-            <select value={row.doorFinish} onChange={(e) => onUpdate(row.id, 'doorFinish', e.target.value)} className="apple-input appearance-none text-[13px]">
+            <select value={row.doorFinish} onChange={(e) => onUpdate(row.id, 'doorFinish', e.target.value)}
+              className="apple-input appearance-none text-sm">
               {(['Primed', 'White', 'RAW', 'Custom'] as DoorFinish[]).map((f) => <option key={f} value={f}>{f}</option>)}
             </select>
           </div>
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Core</label>
-            <select value={row.doorCore} onChange={(e) => onUpdate(row.id, 'doorCore', e.target.value)} className="apple-input appearance-none text-[13px]">
+            <select value={row.doorCore} onChange={(e) => onUpdate(row.id, 'doorCore', e.target.value)}
+              className="apple-input appearance-none text-sm">
               {(['Honeycomb', 'Poly', 'Solid'] as DoorCore[]).map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div className="space-y-2">
-            <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Frame</label>
-            <select value={row.frameType} onChange={(e) => onUpdate(row.id, 'frameType', e.target.value)} className="apple-input appearance-none text-[13px]">
+            <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Frame Type</label>
+            <select value={row.frameType} onChange={(e) => onUpdate(row.id, 'frameType', e.target.value)}
+              className="apple-input appearance-none text-sm">
               {(['Standard', 'Cavity', 'Bifold', 'Wardrobe', 'Custom'] as FrameType[]).map((f) => <option key={f} value={f}>{f}</option>)}
             </select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Hardware Code</label>
+            <input type="text" value={row.hardwareCode} onChange={(e) => onUpdate(row.id, 'hardwareCode', e.target.value)}
+              className="apple-input text-sm" placeholder="Code" />
           </div>
         </div>
 
@@ -336,7 +353,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
           <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Soft Close</label>
           <button
             onClick={() => onUpdate(row.id, 'softClose', !row.softClose)}
-            className={`w-full py-3 rounded-[12px] transition-all flex items-center justify-center gap-2 text-[13px] font-bold ${
+            className={`w-full py-3 rounded-[12px] transition-all flex items-center justify-center gap-2 text-[13px] font-bold min-h-[44px] ${
               row.softClose ? 'bg-emerald-500 text-white' : 'bg-black/[0.05] text-black/30'
             }`}
           >
@@ -351,7 +368,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
           <textarea
             value={row.notes}
             onChange={(e) => onUpdate(row.id, 'notes', e.target.value)}
-            className="apple-input min-h-[80px] py-4"
+            className="apple-input min-h-[80px] py-4 text-sm"
             placeholder="Special requirements..."
           />
         </div>

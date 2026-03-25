@@ -13,14 +13,14 @@ interface Props {
 export const OrderTable: React.FC<Props> = ({ data, onAddRow, onUpdateRow, onDeleteRow }) => {
   return (
     <div className="apple-card overflow-hidden">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-10 p-12 border-b border-black/[0.05]">
-        <div className="flex items-center gap-6">
-          <div className="bg-apple-blue/10 p-5 rounded-[20px]">
-            <TableIcon className="text-apple-blue w-8 h-8" strokeWidth={2.5} />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-10 p-6 sm:p-12 border-b border-black/[0.05]">
+        <div className="flex items-center gap-4 sm:gap-6">
+          <div className="bg-apple-blue/10 p-4 sm:p-5 rounded-[18px] sm:rounded-[20px]">
+            <TableIcon className="text-apple-blue w-6 sm:w-8 h-6 sm:h-8" strokeWidth={2.5} />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-black tracking-tight">Door Schedule</h3>
-            <p className="text-[15px] text-apple-gray font-medium">Add and manage door measurements</p>
+            <h3 className="text-xl sm:text-2xl font-bold text-black tracking-tight">Door Schedule</h3>
+            <p className="text-[14px] sm:text-[15px] text-apple-gray font-medium">Add and manage door measurements</p>
           </div>
         </div>
         <button
@@ -54,7 +54,7 @@ export const OrderTable: React.FC<Props> = ({ data, onAddRow, onUpdateRow, onDel
           <tbody>
             {data.doors.length === 0 ? (
               <tr>
-                <td colSpan={13} className="p-20 text-center">
+                <td colSpan={13} className="p-16 sm:p-20 text-center">
                   <div className="flex flex-col items-center gap-3 text-black/20">
                     <TableIcon className="w-12 h-12" strokeWidth={1} />
                     <p className="text-sm font-semibold">No doors added yet</p>
@@ -79,10 +79,13 @@ export const OrderTable: React.FC<Props> = ({ data, onAddRow, onUpdateRow, onDel
       {/* Mobile Card Layout */}
       <div className="md:hidden divide-y divide-black/[0.05]">
         {data.doors.length === 0 ? (
-          <div className="p-20 text-center">
-            <div className="flex flex-col items-center gap-3 text-black/20">
-              <TableIcon className="w-12 h-12" strokeWidth={1} />
-              <p className="text-sm font-semibold">No doors added yet</p>
+          <div className="p-12 text-center">
+            <div className="flex flex-col items-center gap-4 text-black/20">
+              <TableIcon className="w-14 h-14" strokeWidth={1} />
+              <div>
+                <p className="text-sm font-semibold">No doors added yet</p>
+                <p className="text-xs mt-1">Tap "Add Door" above to get started</p>
+              </div>
             </div>
           </div>
         ) : (
@@ -97,6 +100,19 @@ export const OrderTable: React.FC<Props> = ({ data, onAddRow, onUpdateRow, onDel
           ))
         )}
       </div>
+
+      {/* Mobile sticky "Add Door" at bottom when doors exist */}
+      {data.doors.length > 0 && (
+        <div className="md:hidden p-4 border-t border-black/[0.05] bg-white/80 backdrop-blur-sm">
+          <button
+            onClick={onAddRow}
+            className="apple-button-primary no-print flex items-center justify-center gap-2 w-full"
+          >
+            <Plus className="w-4 h-4" strokeWidth={3} />
+            Add Another Door
+          </button>
+        </div>
+      )}
     </div>
   );
 };

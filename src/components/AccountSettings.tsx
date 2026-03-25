@@ -100,17 +100,17 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
   const roleInfo = user.role ? ROLE_LABELS[user.role] : null;
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
 
       {/* ── Profile card ────────────────────────────────────────────────────── */}
-      <div className="apple-card p-10 sm:p-16">
-        <div className="flex items-center gap-4 mb-10">
-          <div className="bg-apple-blue p-3 rounded-2xl shadow-lg shadow-apple-blue/20">
+      <div className="apple-card p-6 sm:p-10 lg:p-16">
+        <div className="flex items-center gap-4 mb-8 sm:mb-10">
+          <div className="bg-apple-blue p-3 rounded-2xl shadow-lg shadow-apple-blue/20 shrink-0">
             <UserIcon className="text-white w-6 h-6" strokeWidth={2.5} />
           </div>
           <div>
-            <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-bold tracking-tight text-black">Account Settings</h2>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">Account Settings</h2>
               {roleInfo && (() => {
                 const Icon = roleInfo.icon;
                 return (
@@ -125,8 +125,8 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
           </div>
         </div>
 
-        <form onSubmit={handleSave} className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <form onSubmit={handleSave} className="space-y-6 sm:space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10">
             <div className="space-y-3">
               <label className="text-[13px] font-bold text-black/60 ml-1 uppercase tracking-wider">Full Name</label>
               <input required type="text" value={name} onChange={e => setName(e.target.value)}
@@ -167,9 +167,9 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
             </div>
           </div>
 
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-end pt-2 sm:pt-4">
             <button type="submit" disabled={isSaving}
-              className={`apple-button-primary flex items-center gap-3 ${showSuccess ? 'bg-emerald-500' : ''}`}>
+              className={`apple-button-primary w-full sm:w-auto flex items-center justify-center gap-3 ${showSuccess ? 'bg-emerald-500' : ''}`}>
               {isSaving ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : showSuccess ? (
@@ -183,23 +183,23 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
       </div>
 
       {/* ── Default Specs card ───────────────────────────────────────────────── */}
-      <div className="apple-card p-10 sm:p-16">
-        <div className="flex items-center gap-4 mb-10">
-          <div className="bg-purple-500 p-3 rounded-2xl shadow-lg shadow-purple-500/20">
+      <div className="apple-card p-6 sm:p-10 lg:p-16">
+        <div className="flex items-center gap-4 mb-8 sm:mb-10">
+          <div className="bg-purple-500 p-3 rounded-2xl shadow-lg shadow-purple-500/20 shrink-0">
             <Settings className="text-white w-6 h-6" strokeWidth={2.5} />
           </div>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-black">Default Specs</h2>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">Default Specs</h2>
             <p className="text-apple-gray font-medium">Pre-fill every new order with these values</p>
           </div>
         </div>
         <GlobalSpecsCard specs={globalSpecs} onChange={handleSpecsChange} />
-        <div className="flex justify-end mt-8">
+        <div className="flex justify-end mt-6 sm:mt-8">
           <button
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className={`apple-button-primary flex items-center gap-3 ${showSuccess ? 'bg-emerald-500' : ''}`}
+            className={`apple-button-primary w-full sm:w-auto flex items-center justify-center gap-3 ${showSuccess ? 'bg-emerald-500' : ''}`}
           >
             {isSaving ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -214,13 +214,13 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
 
       {/* ── Draft Orders card ────────────────────────────────────────────────── */}
       {(isLoadingOrders || drafts.length > 0) && (
-        <div className="apple-card p-10 sm:p-16">
-          <div className="flex items-center gap-4 mb-10">
-            <div className="bg-apple-blue p-3 rounded-2xl shadow-lg shadow-apple-blue/20">
+        <div className="apple-card p-6 sm:p-10 lg:p-16">
+          <div className="flex items-center gap-4 mb-8 sm:mb-10">
+            <div className="bg-apple-blue p-3 rounded-2xl shadow-lg shadow-apple-blue/20 shrink-0">
               <FileEdit className="text-white w-6 h-6" strokeWidth={2.5} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-black">Draft Orders</h2>
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">Draft Orders</h2>
               <p className="text-apple-gray font-medium">Imported from Door AI — continue to complete and submit</p>
             </div>
           </div>
@@ -234,9 +234,9 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
               {drafts.map(draft => (
                 <div
                   key={draft.id}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 bg-apple-blue/[0.03] rounded-3xl border border-apple-blue/[0.10] hover:border-apple-blue/30 transition-all group"
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 sm:p-6 bg-apple-blue/[0.03] rounded-3xl border border-apple-blue/[0.10] hover:border-apple-blue/30 transition-all group gap-4"
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-3 flex-wrap">
                       <span className="font-bold text-lg text-black">{draft.data.jobName || 'Untitled Import'}</span>
                       <span className="text-[10px] font-bold bg-apple-blue/10 text-apple-blue px-2 py-1 rounded-full uppercase tracking-tighter">
@@ -252,7 +252,7 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
                   </div>
                   <button
                     onClick={() => handleContinueDraft(draft)}
-                    className="mt-4 sm:mt-0 flex items-center gap-2 bg-apple-blue text-white font-semibold text-sm px-5 py-2.5 rounded-2xl shadow-md shadow-apple-blue/20 hover:bg-apple-blue/90 active:scale-95 transition-all"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-apple-blue text-white font-semibold text-sm px-5 py-3 rounded-2xl shadow-md shadow-apple-blue/20 hover:bg-apple-blue/90 active:scale-95 transition-all min-h-[44px] shrink-0"
                   >
                     Continue
                     <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
@@ -265,13 +265,13 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
       )}
 
       {/* ── Order History card ───────────────────────────────────────────────── */}
-      <div className="apple-card p-10 sm:p-16">
-        <div className="flex items-center gap-4 mb-10">
-          <div className="bg-black p-3 rounded-2xl shadow-lg shadow-black/20">
+      <div className="apple-card p-6 sm:p-10 lg:p-16">
+        <div className="flex items-center gap-4 mb-8 sm:mb-10">
+          <div className="bg-black p-3 rounded-2xl shadow-lg shadow-black/20 shrink-0">
             <History className="text-white w-6 h-6" strokeWidth={2.5} />
           </div>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-black">Order History</h2>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">Order History</h2>
             <p className="text-apple-gray font-medium">View and reorder previous specifications</p>
           </div>
         </div>
@@ -285,14 +285,14 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
             <p className="text-apple-gray font-medium">No previous orders found</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {orders.map(order => (
               <div
                 key={order.id}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 bg-black/[0.02] rounded-3xl border border-black/[0.05] hover:border-apple-blue/20 transition-all group"
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 sm:p-6 bg-black/[0.02] rounded-3xl border border-black/[0.05] hover:border-apple-blue/20 transition-all group gap-4"
               >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-3 flex-wrap">
                     <span className="font-bold text-lg text-black">{order.data.jobName || 'Untitled Job'}</span>
                     <span className="text-[10px] font-bold bg-black/5 px-2 py-1 rounded-full text-black/40 uppercase tracking-tighter">
                       #{order.id.slice(0, 8)}
@@ -304,7 +304,7 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
                 </div>
                 <button
                   onClick={() => onReorder(order.data)}
-                  className="mt-4 sm:mt-0 apple-button-secondary flex items-center gap-2 group-hover:bg-apple-blue group-hover:text-white transition-all"
+                  className="w-full sm:w-auto apple-button-secondary flex items-center justify-center gap-2 group-hover:bg-apple-blue group-hover:text-white transition-all min-h-[44px]"
                 >
                   <RotateCcw className="w-4 h-4" />
                   Reorder

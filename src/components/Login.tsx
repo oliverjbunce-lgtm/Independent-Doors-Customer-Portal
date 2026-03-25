@@ -57,7 +57,7 @@ const SIGNUP_STEPS = ['Account', 'Role', 'Details', 'Defaults'];
 
 function StepDots({ current, total }: { current: number; total: number }) {
   return (
-    <div className="flex items-center justify-center gap-2 mb-8">
+    <div className="flex items-center justify-center gap-2 mb-6 sm:mb-8">
       {Array.from({ length: total }).map((_, i) => (
         <div
           key={i}
@@ -239,7 +239,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
   const cardWidth = isSpecsStep ? 'max-w-3xl' : 'max-w-[440px]';
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-apple-bg">
+    <div className="min-h-screen flex items-start sm:items-center justify-center p-4 sm:p-6 bg-apple-bg">
       <AnimatePresence mode="wait">
         <motion.div
           key={cardWidth}
@@ -247,18 +247,18 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.97 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          className={`w-full ${cardWidth}`}
+          className={`w-full ${cardWidth} mt-4 sm:mt-0`}
         >
-          <div className="apple-card p-10 flex flex-col items-center">
+          <div className="apple-card p-6 sm:p-10 flex flex-col items-center">
 
             {/* Logo */}
-            <div className="mb-6">
-              <img src="https://iddoors.co.nz/wp-content/uploads/2023/11/logo.svg" alt="Independent Doors" className="h-10 w-auto" />
+            <div className="mb-5 sm:mb-6">
+              <img src="https://iddoors.co.nz/wp-content/uploads/2023/11/logo.svg" alt="Independent Doors" className="h-9 sm:h-10 w-auto" />
             </div>
 
             {/* Title */}
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-black tracking-tight">Independent Doors</h1>
+            <div className="text-center mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold text-black tracking-tight">Independent Doors</h1>
               <p className="text-apple-gray font-medium mt-1">
                 {mode === 'login' ? 'Sign in to your portal' : 'Create your trade account'}
               </p>
@@ -271,7 +271,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
 
             {/* ── LOGIN ────────────────────────────────────────────────────── */}
             {mode === 'login' && (
-              <form onSubmit={handleLogin} className="w-full space-y-6">
+              <form onSubmit={handleLogin} className="w-full space-y-5 sm:space-y-6">
                 <div className="space-y-2">
                   <label className="text-[13px] font-semibold text-black/60 ml-1">Email</label>
                   <div className="relative">
@@ -300,7 +300,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
 
             {/* ── SIGNUP STEP 1 — Basic info ───────────────────────────────── */}
             {mode === 'signup' && signupStep === 1 && (
-              <form onSubmit={goNext} className="w-full space-y-6">
+              <form onSubmit={goNext} className="w-full space-y-5 sm:space-y-6">
                 <div className="space-y-2">
                   <label className="text-[13px] font-semibold text-black/60 ml-1">Full Name</label>
                   <div className="relative">
@@ -334,8 +334,8 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
 
             {/* ── SIGNUP STEP 2 — Role selection ───────────────────────────── */}
             {mode === 'signup' && signupStep === 2 && (
-              <div className="w-full space-y-4">
-                <p className="text-sm text-apple-gray font-medium text-center -mt-2 mb-6">
+              <div className="w-full space-y-3 sm:space-y-4">
+                <p className="text-sm text-apple-gray font-medium text-center -mt-2 mb-4 sm:mb-6">
                   How will you be using the portal?
                 </p>
                 {ROLE_CARDS.map(card => {
@@ -346,13 +346,13 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
                       key={card.value}
                       type="button"
                       onClick={() => { setRole(card.value); setError(null); }}
-                      className={`w-full flex items-start gap-5 p-5 rounded-2xl border-2 text-left transition-all active:scale-[0.99] ${
+                      className={`w-full flex items-start gap-4 sm:gap-5 p-4 sm:p-5 rounded-2xl border-2 text-left transition-all active:scale-[0.99] ${
                         isSelected
                           ? 'border-apple-blue bg-apple-blue/[0.04] shadow-sm'
                           : 'border-black/[0.06] hover:border-black/[0.12] bg-white'
                       }`}
                     >
-                      <div className={`p-3 rounded-xl border flex-shrink-0 mt-0.5 ${
+                      <div className={`p-2.5 sm:p-3 rounded-xl border flex-shrink-0 mt-0.5 ${
                         isSelected ? 'bg-apple-blue/10 border-apple-blue/20 text-apple-blue' : card.color
                       }`}>
                         <Icon className="w-5 h-5" strokeWidth={2} />
@@ -393,7 +393,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
 
             {/* ── SIGNUP STEP 3 — Role details (merchant / builder) ─────────── */}
             {mode === 'signup' && signupStep === 3 && role !== 'staff' && (
-              <div className="w-full space-y-6">
+              <div className="w-full space-y-5 sm:space-y-6">
                 <p className="text-sm text-apple-gray font-medium text-center -mt-2 mb-2">
                   {role === 'merchant'
                     ? 'Which branch or company are you ordering for?'
@@ -404,13 +404,14 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <label className="text-[13px] font-semibold text-black/60 ml-1">Select your merchant</label>
-                      <div className="grid grid-cols-2 gap-3">
+                      {/* Single column on mobile, 2-col on sm+ */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                         {NZ_MERCHANTS.map(m => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => { setSelectedMerchant(m); setCustomCompany(''); setError(null); }}
-                            className={`py-3 px-4 rounded-2xl border-2 text-sm font-semibold transition-all text-left active:scale-[0.98] ${
+                            className={`py-3 px-4 rounded-2xl border-2 text-sm font-semibold transition-all text-left active:scale-[0.98] min-h-[44px] ${
                               selectedMerchant === m
                                 ? 'border-apple-blue text-apple-blue bg-apple-blue/[0.04]'
                                 : 'border-black/[0.07] text-black/70 hover:border-black/20 bg-white'
@@ -422,7 +423,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
                         <button
                           type="button"
                           onClick={() => { setSelectedMerchant('__custom__'); setError(null); }}
-                          className={`py-3 px-4 rounded-2xl border-2 text-sm font-semibold transition-all text-left active:scale-[0.98] ${
+                          className={`py-3 px-4 rounded-2xl border-2 text-sm font-semibold transition-all text-left active:scale-[0.98] min-h-[44px] ${
                             selectedMerchant === '__custom__'
                               ? 'border-apple-blue text-apple-blue bg-apple-blue/[0.04]'
                               : 'border-dashed border-black/[0.12] text-black/40 hover:border-black/30 bg-white'
@@ -483,7 +484,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
 
             {/* ── SIGNUP STEP 3 (staff) / STEP 4 — Global spec defaults ─────── */}
             {mode === 'signup' && isSpecsStep && (
-              <div className="w-full space-y-8">
+              <div className="w-full space-y-6 sm:space-y-8">
                 <div className="text-center -mt-2">
                   <p className="text-sm text-apple-gray font-medium">
                     Set your default specs — these pre-fill every new order.
@@ -526,18 +527,18 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
                   setError(null);
                 }
               }}
-              className="mt-6 text-[13px] font-bold text-apple-blue hover:underline"
+              className="mt-5 sm:mt-6 text-[13px] font-bold text-apple-blue hover:underline"
             >
               {mode === 'login' ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
             </button>
 
-            <div className="mt-8 pt-6 border-t border-black/[0.05] w-full flex items-center justify-center gap-2 text-apple-gray text-[13px] font-medium">
+            <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-black/[0.05] w-full flex items-center justify-center gap-2 text-apple-gray text-[13px] font-medium">
               <ShieldCheck className="w-4 h-4" strokeWidth={2} />
               Secure Trade Access
             </div>
           </div>
 
-          <p className="text-center mt-8 text-apple-gray text-[12px] font-medium">
+          <p className="text-center mt-6 sm:mt-8 text-apple-gray text-[12px] font-medium">
             © {new Date().getFullYear()} Independent Doors Ltd.
           </p>
         </motion.div>

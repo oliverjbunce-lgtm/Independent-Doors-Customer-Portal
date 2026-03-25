@@ -223,32 +223,46 @@ export default function App() {
     return <Login onLogin={setUser} />;
   }
 
+  const currentStepIndex = STEPS.findIndex(s => s.id === currentStep);
+
   return (
     <div className="min-h-screen bg-apple-bg flex flex-col font-sans">
 
       {/* ── Navigation / Header ─────────────────────────────────────────────── */}
-      <header className="glass sticky top-0 z-50 no-print shrink-0 px-6 py-3">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentStep('INFO')}>
-            <img src="https://iddoors.co.nz/wp-content/uploads/2023/11/logo.svg" alt="Independent Doors" className="h-10 w-auto" />
-            <div>
+      <header className="glass sticky top-0 z-50 no-print shrink-0 px-3 sm:px-6 py-3">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 cursor-pointer min-w-0" onClick={() => setCurrentStep('INFO')}>
+            <img src="https://iddoors.co.nz/wp-content/uploads/2023/11/logo.svg" alt="Independent Doors" className="h-8 sm:h-10 w-auto shrink-0" />
+            <div className="hidden sm:block">
               <p className="text-[10px] text-apple-gray font-semibold uppercase tracking-wider">Order Portal</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Role badge */}
+          <div className="flex items-center gap-1.5 sm:gap-3">
+            {/* Role badge — hidden on xs */}
             <RoleBadge user={user} />
 
-            {/* Drafts badge */}
+            {/* Drafts badge — hidden on xs */}
             {draftCount > 0 && (
               <button
                 onClick={() => setCurrentStep('SETTINGS')}
-                className="flex items-center gap-1.5 bg-apple-blue/10 hover:bg-apple-blue/20 px-3 py-1.5 rounded-full transition-all"
+                className="hidden sm:flex items-center gap-1.5 bg-apple-blue/10 hover:bg-apple-blue/20 px-3 py-1.5 rounded-full transition-all"
                 title="You have draft orders"
               >
                 <FileEdit className="w-3.5 h-3.5 text-apple-blue" strokeWidth={2.5} />
                 <span className="text-[11px] font-bold text-apple-blue">{draftCount} Draft{draftCount !== 1 ? 's' : ''}</span>
+              </button>
+            )}
+
+            {/* Draft icon-only on mobile */}
+            {draftCount > 0 && (
+              <button
+                onClick={() => setCurrentStep('SETTINGS')}
+                className="sm:hidden relative p-2 text-apple-blue hover:bg-apple-blue/10 rounded-full transition-all"
+                title="You have draft orders"
+              >
+                <FileEdit className="w-4.5 h-4.5" strokeWidth={2.5} />
+                <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-apple-blue text-white rounded-full text-[9px] font-bold flex items-center justify-center">{draftCount}</span>
               </button>
             )}
 
@@ -266,10 +280,10 @@ export default function App() {
             >
               <LogOut className="w-5 h-5" strokeWidth={2} />
             </button>
-            <div className="h-6 w-[1px] bg-black/[0.05]" />
-            <div className="flex items-center gap-2">
+            <div className="hidden sm:block h-6 w-[1px] bg-black/[0.05]" />
+            <div className="hidden sm:flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-              <span className="text-[11px] font-semibold text-black/60 uppercase tracking-tight">{user.name}</span>
+              <span className="text-[11px] font-semibold text-black/60 uppercase tracking-tight max-w-[120px] truncate">{user.name}</span>
             </div>
           </div>
         </div>
@@ -277,9 +291,39 @@ export default function App() {
 
       {/* ── Step Indicator ──────────────────────────────────────────────────── */}
       {currentStep !== 'SETTINGS' && (
-        <div className="bg-white/50 backdrop-blur-md border-b border-black/[0.05] no-print sticky top-[56px] z-40 shrink-0">
-          <div className="max-w-5xl mx-auto px-6">
-            <div className="flex items-center justify-between py-6">
+        <div className="bg-white/50 backdrop-blur-md border-b border-black/[0.05] no-print sticky top-[52px] sm:top-[56px] z-40 shrink-0">
+          <div className="max-w-5xl mx-auto px-3 sm:px-6">
+
+            {/* Mobile step indicator (< sm) */}
+            <div className="flex sm:hidden items-center justify-between py-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-apple-blue text-white text-[11px] font-bold shrink-0">
+                  {currentStepIndex + 1}
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold text-black/40 uppercase tracking-tight">Step {currentStepIndex + 1} of {STEPS.length}</p>
+                  <p className="text-sm font-bold text-apple-blue">{STEPS[currentStepIndex]?.label}</p>
+                </div>
+              </div>
+              {/* Mini progress dots */}
+              <div className="flex items-center gap-1">
+                {STEPS.map((step, i) => (
+                  <div
+                    key={step.id}
+                    className={`rounded-full transition-all duration-300 ${
+                      i === currentStepIndex
+                        ? 'w-5 h-2 bg-apple-blue'
+                        : i < currentStepIndex
+                        ? 'w-2 h-2 bg-emerald-500'
+                        : 'w-2 h-2 bg-black/[0.10]'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Full step bar (sm+) */}
+            <div className="hidden sm:flex items-center justify-between py-6">
               {STEPS.map((step, index) => {
                 const Icon = step.icon;
                 const isActive    = step.id === currentStep;
@@ -333,13 +377,13 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-            className="max-w-5xl mx-auto px-6 py-10 w-full"
+            className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 w-full"
           >
             {currentStep === 'INFO' && (
-              <div className="space-y-12">
+              <div className="space-y-8 sm:space-y-12">
                 <OrderHeader data={order} onChange={handleHeaderChange} />
-                <div className="flex justify-end pt-4">
-                  <button onClick={nextStep} className="apple-button-primary flex items-center gap-3">
+                <div className="flex justify-end pt-2 sm:pt-4">
+                  <button onClick={nextStep} className="apple-button-primary w-full sm:w-auto flex items-center justify-center gap-3">
                     Continue
                     <ArrowRight className="w-5 h-5" strokeWidth={2.5} />
                   </button>
@@ -348,9 +392,9 @@ export default function App() {
             )}
 
             {currentStep === 'SPECS' && (
-              <div className="space-y-12">
+              <div className="space-y-8 sm:space-y-12">
                 <GlobalSpecsCard specs={order.globalSpecs} onChange={handleGlobalSpecsChange} />
-                <div className="flex justify-between pt-4">
+                <div className="flex justify-between gap-3 pt-2 sm:pt-4">
                   <button onClick={prevStep} className="apple-button-secondary">Back</button>
                   <button onClick={nextStep} className="apple-button-primary flex items-center gap-3">
                     Continue
@@ -361,14 +405,14 @@ export default function App() {
             )}
 
             {currentStep === 'SCHEDULE' && (
-              <div className="space-y-12">
+              <div className="space-y-8 sm:space-y-12">
                 <OrderTable
                   data={order}
                   onAddRow={addDoor}
                   onUpdateRow={updateDoor}
                   onDeleteRow={deleteDoor}
                 />
-                <div className="flex justify-between pt-4">
+                <div className="flex justify-between gap-3 pt-2 sm:pt-4">
                   <button onClick={prevStep} className="apple-button-secondary">Back</button>
                   <button onClick={nextStep} className="apple-button-primary flex items-center gap-3">
                     Review Order
@@ -379,13 +423,13 @@ export default function App() {
             )}
 
             {currentStep === 'REVIEW' && (
-              <div className="space-y-12">
-                <div className="apple-card p-10 sm:p-16">
+              <div className="space-y-8 sm:space-y-12">
+                <div className="apple-card p-4 sm:p-10 lg:p-16">
                   <OrderPreview order={order} />
                 </div>
-                <div className="flex flex-col sm:flex-row justify-between gap-6 pt-4 no-print">
+                <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-6 pt-2 sm:pt-4 no-print">
                   <button onClick={prevStep} className="apple-button-secondary order-2 sm:order-1">Back to Edit</button>
-                  <div className="flex flex-col sm:flex-row gap-4 order-1 sm:order-2">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 order-1 sm:order-2">
                     <button
                       onClick={() => window.print()}
                       className="apple-button-secondary flex items-center justify-center gap-3"
@@ -458,7 +502,7 @@ export default function App() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[110] bg-white rounded-[24px] px-8 py-5 shadow-2xl flex items-center gap-5 border border-black/[0.05] backdrop-blur-xl"
+            className="fixed bottom-8 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-[110] bg-white rounded-[24px] px-6 sm:px-8 py-5 shadow-2xl flex items-center gap-5 border border-black/[0.05] backdrop-blur-xl"
           >
             <div className="bg-emerald-500 p-3 rounded-full shadow-lg shadow-emerald-500/20">
               <CheckCircle2 className="w-6 h-6 text-white" strokeWidth={2.5} />

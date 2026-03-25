@@ -10,36 +10,37 @@ export const OrderPreview: React.FC<Props> = ({ order }) => {
   return (
     <div className="bg-white text-black">
       {/* Document Header */}
-      <div className="flex justify-between items-start border-b border-black/[0.05] pb-10 mb-16">
+      <div className="flex justify-between items-start border-b border-black/[0.05] pb-6 sm:pb-10 mb-8 sm:mb-16 gap-4">
         <div>
           <h4 className="text-[12px] font-bold text-apple-blue uppercase tracking-tight mb-2">Order Summary</h4>
-          <h3 className="text-4xl font-bold text-black tracking-tight">Confirmation</h3>
+          <h3 className="text-2xl sm:text-4xl font-bold text-black tracking-tight">Confirmation</h3>
         </div>
-        <div className="text-right">
+        <div className="text-right shrink-0">
           <h4 className="text-[12px] font-bold text-apple-gray uppercase tracking-tight mb-2">Reference</h4>
-          <p className="text-xl font-bold text-apple-blue">{order.orderNumber || 'Pending'}</p>
+          <p className="text-base sm:text-xl font-bold text-apple-blue">{order.orderNumber || 'Pending'}</p>
         </div>
       </div>
 
       {/* Info Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 mb-16">
-        <div className="space-y-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-16 mb-8 sm:mb-16">
+        <div className="space-y-6 sm:space-y-10">
           <div>
-            <h5 className="text-[12px] font-bold text-apple-gray uppercase tracking-tight mb-6 flex items-center gap-3">
+            <h5 className="text-[12px] font-bold text-apple-gray uppercase tracking-tight mb-4 sm:mb-6 flex items-center gap-3">
               <Building2 className="w-4 h-4" strokeWidth={2.5} /> Job Details
             </h5>
-            <div className="space-y-4">
-              <p className="text-2xl font-bold text-black tracking-tight">{order.jobName || 'Untitled Job'}</p>
-              <div className="flex items-center gap-3 text-[15px] font-medium text-black/60">
-                <User className="w-4 h-4" /> {order.contactName || 'No contact specified'}
+            <div className="space-y-3 sm:space-y-4">
+              <p className="text-xl sm:text-2xl font-bold text-black tracking-tight">{order.jobName || 'Untitled Job'}</p>
+              <div className="flex items-center gap-3 text-[14px] sm:text-[15px] font-medium text-black/60">
+                <User className="w-4 h-4 shrink-0" /> {order.contactName || 'No contact specified'}
               </div>
-              <div className="flex items-start gap-3 text-[15px] font-medium text-black/60">
-                <MapPin className="w-4 h-4 mt-0.5" /> {order.siteAddress || 'No address specified'}
+              <div className="flex items-start gap-3 text-[14px] sm:text-[15px] font-medium text-black/60">
+                <MapPin className="w-4 h-4 mt-0.5 shrink-0" /> {order.siteAddress || 'No address specified'}
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-8 pt-10 border-t border-black/[0.03]">
+          {/* Merchant / Date / Method — stack on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 pt-6 sm:pt-10 border-t border-black/[0.03]">
             <div>
               <h5 className="text-[12px] font-bold text-apple-gray uppercase tracking-tight mb-2">Merchant</h5>
               <p className="text-[15px] font-bold text-black">{order.merchant || 'TBC'}</p>
@@ -55,11 +56,11 @@ export const OrderPreview: React.FC<Props> = ({ order }) => {
           </div>
         </div>
 
-        <div className="bg-black/[0.02] rounded-[32px] p-12 border border-black/[0.03]">
-          <h5 className="text-[12px] font-bold text-apple-blue uppercase tracking-tight mb-8 flex items-center gap-3">
+        <div className="bg-black/[0.02] rounded-[24px] sm:rounded-[32px] p-6 sm:p-12 border border-black/[0.03]">
+          <h5 className="text-[12px] font-bold text-apple-blue uppercase tracking-tight mb-5 sm:mb-8 flex items-center gap-3">
             <Settings className="w-4 h-4" strokeWidth={2.5} /> Global Specs
           </h5>
-          <div className="grid grid-cols-2 gap-y-8 gap-x-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 sm:gap-y-8 gap-x-6 sm:gap-x-12">
             <div className="space-y-2">
               <p className="text-[12px] font-bold text-apple-gray uppercase tracking-tight">Jamb</p>
               <p className="text-[15px] font-bold text-black">{order.globalSpecs.jambStyle} / {order.globalSpecs.jambMaterial}</p>
@@ -88,52 +89,52 @@ export const OrderPreview: React.FC<Props> = ({ order }) => {
         </div>
       </div>
 
-      {/* Full Door Schedule */}
-      <div className="mb-16">
-        <h5 className="text-[12px] font-bold text-apple-gray uppercase tracking-tight mb-8 flex items-center gap-3">
+      {/* Full Door Schedule — horizontally scrollable on mobile */}
+      <div className="mb-8 sm:mb-16">
+        <h5 className="text-[12px] font-bold text-apple-gray uppercase tracking-tight mb-5 sm:mb-8 flex items-center gap-3">
           <Layers className="w-4 h-4" strokeWidth={2.5} /> Door Schedule
         </h5>
-        <div className="border border-black/[0.05] rounded-[32px] overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+        <div className="border border-black/[0.05] rounded-[20px] sm:rounded-[32px] overflow-hidden">
+          <div className="overflow-x-auto -webkit-overflow-scrolling-touch">
+            <table className="w-full text-left border-collapse" style={{ minWidth: '680px' }}>
               <thead>
                 <tr className="bg-black/[0.02] border-b border-black/[0.05]">
-                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">#</th>
-                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Location</th>
-                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Hang</th>
-                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">H×W×T (mm)</th>
-                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Trim H×W</th>
-                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Gap/Gib</th>
-                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Finish</th>
-                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Core</th>
-                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Frame</th>
-                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Soft ×</th>
-                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Hw Code</th>
-                  <th className="p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Notes</th>
+                  <th className="p-3 sm:p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">#</th>
+                  <th className="p-3 sm:p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Location</th>
+                  <th className="p-3 sm:p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Hang</th>
+                  <th className="p-3 sm:p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">H×W×T (mm)</th>
+                  <th className="p-3 sm:p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Trim H×W</th>
+                  <th className="p-3 sm:p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Gap/Gib</th>
+                  <th className="p-3 sm:p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Finish</th>
+                  <th className="p-3 sm:p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Core</th>
+                  <th className="p-3 sm:p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Frame</th>
+                  <th className="p-3 sm:p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Soft ×</th>
+                  <th className="p-3 sm:p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Hw Code</th>
+                  <th className="p-3 sm:p-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Notes</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/[0.03]">
                 {order.doors.map((door, i) => (
                   <tr key={door.id} className="hover:bg-black/[0.01] transition-colors">
-                    <td className="p-4 text-[13px] font-bold text-black/30">{i + 1}</td>
-                    <td className="p-4 text-[14px] font-bold text-black">{door.location || `Door ${i + 1}`}</td>
-                    <td className="p-4 text-[14px] font-bold text-apple-blue">{door.hanging}</td>
-                    <td className="p-4 text-[13px] font-medium text-black/60">{door.height}×{door.width}×{door.thickness}</td>
-                    <td className="p-4 text-[13px] font-medium text-black/60">
+                    <td className="p-3 sm:p-4 text-[13px] font-bold text-black/30">{i + 1}</td>
+                    <td className="p-3 sm:p-4 text-[14px] font-bold text-black">{door.location || `Door ${i + 1}`}</td>
+                    <td className="p-3 sm:p-4 text-[14px] font-bold text-apple-blue">{door.hanging}</td>
+                    <td className="p-3 sm:p-4 text-[13px] font-medium text-black/60 whitespace-nowrap">{door.height}×{door.width}×{door.thickness}</td>
+                    <td className="p-3 sm:p-4 text-[13px] font-medium text-black/60 whitespace-nowrap">
                       {door.trimHeight && door.trimWidth ? `${door.trimHeight}×${door.trimWidth}` : '—'}
                     </td>
-                    <td className="p-4 text-[13px] font-medium text-black/60">{door.floorGap}/{door.gibFrameSize}</td>
-                    <td className="p-4 text-[13px] font-medium text-black/60">{door.doorFinish}</td>
-                    <td className="p-4 text-[13px] font-medium text-black/60">{door.doorCore}</td>
-                    <td className="p-4 text-[13px] font-medium text-black/60">{door.frameType}</td>
-                    <td className="p-4 text-[13px] font-medium text-black/60">{door.softClose ? '✓' : '—'}</td>
-                    <td className="p-4 text-[13px] font-medium text-black/60">{door.hardwareCode || '—'}</td>
-                    <td className="p-4 text-[13px] font-medium text-black/60 max-w-[160px] truncate">{door.notes || '—'}</td>
+                    <td className="p-3 sm:p-4 text-[13px] font-medium text-black/60 whitespace-nowrap">{door.floorGap}/{door.gibFrameSize}</td>
+                    <td className="p-3 sm:p-4 text-[13px] font-medium text-black/60">{door.doorFinish}</td>
+                    <td className="p-3 sm:p-4 text-[13px] font-medium text-black/60">{door.doorCore}</td>
+                    <td className="p-3 sm:p-4 text-[13px] font-medium text-black/60">{door.frameType}</td>
+                    <td className="p-3 sm:p-4 text-[13px] font-medium text-black/60">{door.softClose ? '✓' : '—'}</td>
+                    <td className="p-3 sm:p-4 text-[13px] font-medium text-black/60">{door.hardwareCode || '—'}</td>
+                    <td className="p-3 sm:p-4 text-[13px] font-medium text-black/60 max-w-[120px] sm:max-w-[160px] truncate">{door.notes || '—'}</td>
                   </tr>
                 ))}
                 {order.doors.length === 0 && (
                   <tr>
-                    <td colSpan={12} className="p-16 text-center text-[15px] text-apple-gray font-medium italic">No doors added to schedule.</td>
+                    <td colSpan={12} className="p-10 sm:p-16 text-center text-[15px] text-apple-gray font-medium italic">No doors added to schedule.</td>
                   </tr>
                 )}
               </tbody>
@@ -143,19 +144,19 @@ export const OrderPreview: React.FC<Props> = ({ order }) => {
       </div>
 
       {/* Footer Summary */}
-      <div className="bg-apple-blue/[0.03] rounded-[32px] p-12 flex items-center justify-between border border-apple-blue/[0.05]">
-        <div className="flex items-center gap-6">
-          <div className="bg-apple-blue text-white p-5 rounded-[20px] shadow-lg shadow-apple-blue/20">
-            <CheckCircle2 className="w-8 h-8" strokeWidth={2.5} />
+      <div className="bg-apple-blue/[0.03] rounded-[24px] sm:rounded-[32px] p-6 sm:p-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 sm:gap-0 border border-apple-blue/[0.05]">
+        <div className="flex items-center gap-4 sm:gap-6">
+          <div className="bg-apple-blue text-white p-4 sm:p-5 rounded-[18px] sm:rounded-[20px] shadow-lg shadow-apple-blue/20">
+            <CheckCircle2 className="w-6 sm:w-8 h-6 sm:h-8" strokeWidth={2.5} />
           </div>
           <div>
             <p className="text-[12px] font-bold text-apple-blue uppercase tracking-tight">Status</p>
-            <p className="text-2xl font-bold text-black tracking-tight">Ready to Send</p>
+            <p className="text-xl sm:text-2xl font-bold text-black tracking-tight">Ready to Send</p>
           </div>
         </div>
-        <div className="text-right">
+        <div className="sm:text-right">
           <p className="text-[12px] font-bold text-apple-gray uppercase tracking-tight">Total Doors</p>
-          <p className="text-5xl font-bold text-apple-blue leading-none">{order.doors.length}</p>
+          <p className="text-4xl sm:text-5xl font-bold text-apple-blue leading-none">{order.doors.length}</p>
         </div>
       </div>
     </div>
