@@ -230,7 +230,7 @@ export default function App() {
       <header className="glass sticky top-0 z-50 no-print shrink-0 px-6 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentStep('INFO')}>
-            <img src="https://www.iddoors.co.nz/wp-content/uploads/2022/08/ID-logo.png" alt="Independent Doors" className="h-10 w-auto" />
+            <img src="https://iddoors.co.nz/wp-content/uploads/2023/11/logo.svg" alt="Independent Doors" className="h-10 w-auto" />
             <div>
               <p className="text-[10px] text-apple-gray font-semibold uppercase tracking-wider">Order Portal</p>
             </div>
