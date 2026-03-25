@@ -173,7 +173,8 @@ function ensureDbReady(): Promise<void> {
 // ── App factory ───────────────────────────────────────────────────────────────
 
 export function createApp() {
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  // Only instantiate Resend when an API key is available — constructor throws on undefined
+  const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
   const app = express();
   app.use(express.json());
@@ -348,7 +349,7 @@ export function createApp() {
       });
       const userName = (userResult.rows[0] as any)?.name || "Unknown User";
 
-      if (process.env.RESEND_API_KEY) {
+      if (resend) {
         resend.emails.send({
           from: FROM_EMAIL,
           to: ORDER_EMAIL,
