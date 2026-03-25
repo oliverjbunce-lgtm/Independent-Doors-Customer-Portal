@@ -1,5 +1,6 @@
 import express from "express";
-import { createClient } from "@libsql/client";
+// Use the HTTP-only client — no WASM, works in Vercel serverless and edge runtimes
+import { createClient } from "@libsql/client/http";
 import bcrypt from "bcryptjs";
 import { Resend } from "resend";
 import dotenv from "dotenv";
