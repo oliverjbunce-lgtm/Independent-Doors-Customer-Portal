@@ -6,9 +6,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const ORDER_EMAIL = process.env.ORDER_EMAIL || "cromwellorders@iddoors.co.nz";
-const FROM_EMAIL  = process.env.FROM_EMAIL  || "portal@iddoors.co.nz";
+const ORDER_EMAIL    = process.env.ORDER_EMAIL    || "cromwellorders@iddoors.co.nz";
+const FROM_EMAIL     = process.env.FROM_EMAIL     || "portal@iddoors.co.nz";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "iddoors-admin";
+const IMPORT_API_KEY = "id-internal-import-key";
 
 // ── Email template ────────────────────────────────────────────────────────────
 
@@ -41,14 +42,9 @@ function buildOrderEmailHtml(orderId: string, data: any, userName: string): stri
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <div style="max-width:900px;margin:40px auto;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-    <div style="background:#0071e3;padding:32px 40px;display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <h1 style="margin:0;color:#fff;font-size:24px;font-weight:700;letter-spacing:-0.5px;">New Door Order</h1>
-        <p style="margin:4px 0 0;color:rgba(255,255,255,0.7);font-size:14px;">Submitted via Customer Portal</p>
-      </div>
-      <div style="background:rgba(255,255,255,0.15);padding:8px 16px;border-radius:100px;">
-        <span style="color:#fff;font-size:13px;font-weight:600;">${doors.length} Door${doors.length !== 1 ? 's' : ''}</span>
-      </div>
+    <div style="background:#0071e3;padding:32px 40px;">
+      <h1 style="margin:0;color:#fff;font-size:24px;font-weight:700;letter-spacing:-0.5px;">New Door Order</h1>
+      <p style="margin:4px 0 0;color:rgba(255,255,255,0.7);font-size:14px;">Submitted via Customer Portal · ${doors.length} Door${doors.length !== 1 ? 's' : ''}</p>
     </div>
     <div style="padding:32px 40px;border-bottom:1px solid #f0f0f0;">
       <h2 style="margin:0 0 20px;font-size:14px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:1px;">Job Details</h2>
@@ -100,14 +96,25 @@ function buildOrderEmailHtml(orderId: string, data: any, userName: string): stri
         </table>
       </div>
     </div>
-    <div style="padding:24px 40px;background:#f5f5f7;border-top:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between;">
-      <p style="margin:0;font-size:13px;color:#aaa;">Order ID: <span style="font-weight:600;color:#666;">${orderId}</span></p>
-      <p style="margin:0;font-size:13px;color:#aaa;">Submitted via Independent Doors Customer Portal</p>
+    <div style="padding:24px 40px;background:#f5f5f7;border-top:1px solid #e8e8e8;">
+      <p style="margin:0;font-size:13px;color:#aaa;">Order ID: <span style="font-weight:600;color:#666;">${orderId}</span> · Submitted via Independent Doors Customer Portal</p>
     </div>
   </div>
 </body>
 </html>`;
 }
+
+// ── Defaults ──────────────────────────────────────────────────────────────────
+
+const DEFAULT_GLOBAL_SPECS = {
+  hingeDetails: '',
+  robeTrackColour: '',
+  jambStyle: 'Flat',
+  jambMaterial: 'MDF',
+  drillingRequired: true,
+  hardwareBrand: '',
+  handleHeight: '1000',
+};
 
 // ── App factory ───────────────────────────────────────────────────────────────
 
@@ -119,7 +126,7 @@ export function createApp() {
 
   const resend = new Resend(process.env.RESEND_API_KEY);
 
-  // Initialise DB tables (idempotent — safe to run on every cold start)
+  // Initialise DB tables — idempotent, safe on every cold start
   const dbReady = (async () => {
     await db.execute(`
       CREATE TABLE IF NOT EXISTS users (
@@ -140,25 +147,58 @@ export function createApp() {
         FOREIGN KEY(userId) REFERENCES users(id)
       )
     `);
+
+    // Additive columns — wrapped in try/catch so duplicates are silently ignored
+    for (const col of [
+      'ALTER TABLE users ADD COLUMN defaultGlobalSpecs TEXT',
+      'ALTER TABLE users ADD COLUMN role TEXT',
+      'ALTER TABLE users ADD COLUMN company TEXT',
+    ]) {
+      try { await db.execute(col); } catch (_) { /* already exists */ }
+    }
   })();
 
   const app = express();
   app.use(express.json());
 
-  // Ensure DB is ready before any request hits a route
-  app.use(async (_req, _res, next) => {
-    try {
-      await dbReady;
-      next();
-    } catch (err) {
-      next(err);
-    }
+  // CORS — allow cross-origin calls from the Door AI frontend
+  app.use((_req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key, x-admin-password');
+    if (_req.method === 'OPTIONS') { res.sendStatus(204); return; }
+    next();
   });
+
+  // Ensure DB is ready before any route handles a request
+  app.use(async (_req, _res, next) => {
+    try { await dbReady; next(); } catch (err) { next(err); }
+  });
+
+  // ── Helper ──────────────────────────────────────────────────────────────────
+
+  function parseJsonField(raw: any): any {
+    if (!raw) return null;
+    try { return JSON.parse(raw as string); } catch (_) { return null; }
+  }
+
+  function serializeUser(row: any) {
+    return {
+      id: row.id,
+      email: row.email,
+      name: row.name,
+      defaultMerchant: row.defaultMerchant ?? null,
+      defaultLocation: row.defaultLocation ?? null,
+      defaultGlobalSpecs: parseJsonField(row.defaultGlobalSpecs),
+      role: row.role ?? null,
+      company: row.company ?? null,
+    };
+  }
 
   // ── Auth ────────────────────────────────────────────────────────────────────
 
   app.post("/api/auth/signup", async (req, res) => {
-    const { email, password, name } = req.body;
+    const { email, password, name, defaultGlobalSpecs, role, company } = req.body;
     if (!email || !password || !name) {
       return res.status(400).json({ error: "Email, password, and name are required" });
     }
@@ -166,10 +206,19 @@ export function createApp() {
     try {
       const hashed = await bcrypt.hash(password, 12);
       await db.execute({
-        sql: "INSERT INTO users (id, email, password, name) VALUES (?, ?, ?, ?)",
-        args: [id, email.toLowerCase().trim(), hashed, name.trim()],
+        sql: `INSERT INTO users (id, email, password, name, defaultGlobalSpecs, role, company)
+              VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          id,
+          email.toLowerCase().trim(),
+          hashed,
+          name.trim(),
+          defaultGlobalSpecs ? JSON.stringify(defaultGlobalSpecs) : null,
+          role ?? null,
+          company ?? null,
+        ],
       });
-      res.json({ id, email, name });
+      res.json({ id, email: email.toLowerCase().trim(), name: name.trim(), defaultGlobalSpecs: defaultGlobalSpecs ?? null, role: role ?? null, company: company ?? null });
     } catch (error: any) {
       if (error.message?.includes("UNIQUE")) {
         res.status(400).json({ error: "An account with that email already exists" });
@@ -181,9 +230,8 @@ export function createApp() {
 
   app.post("/api/auth/login", async (req, res) => {
     const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
-    }
+    if (!email || !password) return res.status(400).json({ error: "Email and password are required" });
+
     const result = await db.execute({
       sql: "SELECT * FROM users WHERE email = ?",
       args: [email.toLowerCase().trim()],
@@ -192,33 +240,39 @@ export function createApp() {
     if (!user) return res.status(401).json({ error: "Invalid email or password" });
     const valid = await bcrypt.compare(password, user.password as string);
     if (!valid) return res.status(401).json({ error: "Invalid email or password" });
-    res.json({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      defaultMerchant: user.defaultMerchant,
-      defaultLocation: user.defaultLocation,
-    });
+
+    res.json(serializeUser(user));
   });
 
   // ── User Profile ────────────────────────────────────────────────────────────
 
   app.get("/api/user/profile/:id", async (req, res) => {
     const result = await db.execute({
-      sql: "SELECT id, email, name, defaultMerchant, defaultLocation FROM users WHERE id = ?",
+      sql: "SELECT * FROM users WHERE id = ?",
       args: [req.params.id],
     });
-    const user = result.rows[0];
-    if (user) res.json(user);
-    else res.status(404).json({ error: "User not found" });
+    const user = result.rows[0] as any;
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(serializeUser(user));
   });
 
   app.put("/api/user/profile/:id", async (req, res) => {
-    const { name, defaultMerchant, defaultLocation } = req.body;
+    const { name, defaultMerchant, defaultLocation, defaultGlobalSpecs, role, company } = req.body;
     try {
       await db.execute({
-        sql: "UPDATE users SET name = ?, defaultMerchant = ?, defaultLocation = ? WHERE id = ?",
-        args: [name, defaultMerchant, defaultLocation, req.params.id],
+        sql: `UPDATE users
+              SET name = ?, defaultMerchant = ?, defaultLocation = ?,
+                  defaultGlobalSpecs = ?, role = ?, company = ?
+              WHERE id = ?`,
+        args: [
+          name,
+          defaultMerchant ?? null,
+          defaultLocation ?? null,
+          defaultGlobalSpecs ? JSON.stringify(defaultGlobalSpecs) : null,
+          role ?? null,
+          company ?? null,
+          req.params.id,
+        ],
       });
       res.json({ success: true });
     } catch (error: any) {
@@ -236,11 +290,22 @@ export function createApp() {
     res.json(result.rows.map((o: any) => ({ ...o, data: JSON.parse(o.data as string) })));
   });
 
+  app.get("/api/orders/drafts/:userId", async (req, res) => {
+    try {
+      const result = await db.execute({
+        sql: "SELECT * FROM orders WHERE userId = ? AND JSON_EXTRACT(data, '$.isDraft') = 1 ORDER BY createdAt DESC",
+        args: [req.params.userId],
+      });
+      res.json(result.rows.map((o: any) => ({ ...o, data: JSON.parse(o.data as string) })));
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.post("/api/orders", async (req, res) => {
     const { userId, data } = req.body;
-    if (!userId || !data) {
-      return res.status(400).json({ error: "userId and data are required" });
-    }
+    if (!userId || !data) return res.status(400).json({ error: "userId and data are required" });
+
     const id = crypto.randomUUID();
     try {
       await db.execute({
@@ -259,16 +324,62 @@ export function createApp() {
           to: ORDER_EMAIL,
           subject: `New Door Order: ${data.jobName || 'Untitled'} — ${data.doors?.length || 0} Door${data.doors?.length !== 1 ? 's' : ''}`,
           html: buildOrderEmailHtml(id, data, userName),
-        }).catch((err: Error) => {
-          console.error("[email] Failed to send order notification:", err.message);
-        });
+        }).catch((err: Error) => console.error("[email] Failed:", err.message));
       } else {
-        console.warn("[email] RESEND_API_KEY not set — skipping order notification email");
+        console.warn("[email] RESEND_API_KEY not set — skipping");
       }
 
       res.json({ id });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
+    }
+  });
+
+  // ── Import endpoint (Door AI → Portal) ─────────────────────────────────────
+
+  app.post("/api/orders/import", async (req, res) => {
+    if (req.headers["x-api-key"] !== IMPORT_API_KEY) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const { email, doors, jobName } = req.body;
+    if (!email || !doors || !Array.isArray(doors)) {
+      return res.status(400).json({ error: "email and doors array are required" });
+    }
+
+    try {
+      const userResult = await db.execute({
+        sql: "SELECT * FROM users WHERE email = ?",
+        args: [email.toLowerCase().trim()],
+      });
+      const user = userResult.rows[0] as any;
+      if (!user) return res.status(404).json({ error: "No account found for that email address" });
+
+      const globalSpecs = { ...DEFAULT_GLOBAL_SPECS, ...(parseJsonField(user.defaultGlobalSpecs) || {}) };
+
+      const orderId = crypto.randomUUID();
+      const orderData = {
+        jobName: jobName || 'Floor Plan Import',
+        contactName: user.name,
+        siteAddress: user.defaultLocation || '',
+        orderNumber: '',
+        merchant: user.defaultMerchant || user.company || '',
+        requiredBy: '',
+        deliveryType: 'Delivery',
+        globalSpecs,
+        doors,
+        isDraft: true,
+      };
+
+      await db.execute({
+        sql: "INSERT INTO orders (id, userId, data) VALUES (?, ?, ?)",
+        args: [orderId, user.id, JSON.stringify(orderData)],
+      });
+
+      // No email notification for draft imports
+
+      res.json({ id: orderId, userId: user.id, portalUrl: "/orders/draft/" + orderId });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -282,19 +393,14 @@ export function createApp() {
       const result = await db.execute(`
         SELECT orders.id, orders.data, orders.createdAt, orders.userId,
                users.name as userName, users.email as userEmail
-        FROM orders
-        LEFT JOIN users ON orders.userId = users.id
+        FROM orders LEFT JOIN users ON orders.userId = users.id
         ORDER BY orders.createdAt DESC
       `);
-      const orders = result.rows.map((o: any) => ({
-        id: o.id,
-        createdAt: o.createdAt,
-        userId: o.userId,
-        userName: o.userName,
-        userEmail: o.userEmail,
+      res.json(result.rows.map((o: any) => ({
+        id: o.id, createdAt: o.createdAt, userId: o.userId,
+        userName: o.userName, userEmail: o.userEmail,
         data: JSON.parse(o.data as string),
-      }));
-      res.json(orders);
+      })));
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

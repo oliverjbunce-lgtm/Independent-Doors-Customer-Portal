@@ -1,9 +1,10 @@
-export type Hanging = 'LH' | 'RH' | 'Slider' | 'Bi-Fold';
-export type DoorCore = 'Poly' | 'Solid' | 'Honeycomb';
+export type Hanging    = 'LH' | 'RH' | 'Slider' | 'Bi-Fold';
+export type DoorCore   = 'Poly' | 'Solid' | 'Honeycomb';
 export type DoorFinish = 'Primed' | 'White' | 'RAW' | 'Custom';
 export type JambMaterial = 'MDF' | 'Pine';
-export type JambStyle = 'Flat' | 'Groove';
-export type FrameType = 'Standard' | 'Cavity' | 'Bifold' | 'Custom';
+export type JambStyle    = 'Flat' | 'Groove';
+export type FrameType    = 'Standard' | 'Cavity' | 'Bifold' | 'Custom';
+export type UserRole     = 'merchant' | 'builder' | 'staff';
 
 export interface GlobalSpecs {
   hingeDetails: string;
@@ -44,6 +45,7 @@ export interface OrderData {
   deliveryType: 'Delivery' | 'Collection';
   globalSpecs: GlobalSpecs;
   doors: DoorOrderRow[];
+  isDraft?: boolean;
 }
 
 export interface User {
@@ -52,6 +54,9 @@ export interface User {
   name: string;
   defaultMerchant?: string;
   defaultLocation?: string;
+  defaultGlobalSpecs?: GlobalSpecs;
+  role?: UserRole;
+  company?: string;
 }
 
 export interface OrderRecord {

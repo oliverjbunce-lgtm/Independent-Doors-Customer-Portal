@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Building2, 
-  Send, 
-  CheckCircle2, 
+import {
+  Building2,
+  Send,
+  CheckCircle2,
   X,
   DoorOpen,
   ArrowRight,
@@ -14,9 +14,13 @@ import {
   Check,
   User as UserIcon,
   LogOut,
-  Printer
+  Printer,
+  Store,
+  Wrench,
+  Shield,
+  FileEdit,
 } from 'lucide-react';
-import { OrderData, DoorOrderRow, GlobalSpecs, User } from './types';
+import { OrderData, DoorOrderRow, GlobalSpecs, User, OrderRecord, UserRole } from './types';
 import { OrderHeader } from './components/OrderHeader';
 import { GlobalSpecsCard } from './components/GlobalSpecs';
 import { OrderTable } from './components/OrderTable';
@@ -27,11 +31,21 @@ import { AccountSettings } from './components/AccountSettings';
 type Step = 'INFO' | 'SPECS' | 'SCHEDULE' | 'REVIEW' | 'SETTINGS';
 
 const STEPS: { id: Step; label: string; icon: any }[] = [
-  { id: 'INFO', label: 'Order Info', icon: Building2 },
-  { id: 'SPECS', label: 'Global Specs', icon: Settings },
-  { id: 'SCHEDULE', label: 'Door Schedule', icon: Layers },
-  { id: 'REVIEW', label: 'Review & Send', icon: Eye },
+  { id: 'INFO',     label: 'Order Info',    icon: Building2 },
+  { id: 'SPECS',    label: 'Global Specs',  icon: Settings  },
+  { id: 'SCHEDULE', label: 'Door Schedule', icon: Layers    },
+  { id: 'REVIEW',   label: 'Review & Send', icon: Eye       },
 ];
+
+const DEFAULT_GLOBAL_SPECS: GlobalSpecs = {
+  hingeDetails: '',
+  robeTrackColour: '',
+  jambStyle: 'Flat',
+  jambMaterial: 'MDF',
+  drillingRequired: true,
+  hardwareBrand: '',
+  handleHeight: '1000',
+};
 
 const INITIAL_STATE: OrderData = {
   jobName: '',
@@ -41,33 +55,64 @@ const INITIAL_STATE: OrderData = {
   merchant: '',
   requiredBy: '',
   deliveryType: 'Delivery',
-  globalSpecs: {
-    hingeDetails: '',
-    robeTrackColour: '',
-    jambStyle: 'Flat',
-    jambMaterial: 'MDF',
-    drillingRequired: true,
-    hardwareBrand: '',
-    handleHeight: '1000',
-  },
+  globalSpecs: { ...DEFAULT_GLOBAL_SPECS },
   doors: [],
 };
 
+// ── Role helpers ──────────────────────────────────────────────────────────────
+
+const ROLE_META: Record<UserRole, { icon: React.ElementType; label: string; color: string }> = {
+  merchant: { icon: Store,   label: 'Merchant', color: 'bg-amber-50 text-amber-700 border-amber-200'  },
+  builder:  { icon: Wrench,  label: 'Builder',  color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  staff:    { icon: Shield,  label: 'Internal', color: 'bg-blue-50 text-blue-700 border-blue-200'     },
+};
+
+function RoleBadge({ user }: { user: User }) {
+  if (!user.role) return null;
+  const meta = ROLE_META[user.role];
+  const Icon = meta.icon;
+  const label = user.company ? `${user.company} · ${meta.label}` : meta.label;
+  return (
+    <div className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold ${meta.color}`}>
+      <Icon className="w-3 h-3" strokeWidth={2.5} />
+      {label}
+    </div>
+  );
+}
+
+// ── Main App ──────────────────────────────────────────────────────────────────
+
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [order, setOrder] = useState<OrderData>(INITIAL_STATE);
+  const [user, setUser]               = useState<User | null>(null);
+  const [order, setOrder]             = useState<OrderData>(INITIAL_STATE);
   const [currentStep, setCurrentStep] = useState<Step>('INFO');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showSavedAnimation, setShowSavedAnimation] = useState(false);
+  const [draftCount, setDraftCount]   = useState(0);
 
+  // Apply user defaults whenever user is set
   useEffect(() => {
-    if (user) {
-      setOrder(prev => ({
-        ...prev,
-        merchant: user.defaultMerchant || prev.merchant,
-        siteAddress: user.defaultLocation || prev.siteAddress,
-      }));
-    }
+    if (!user) return;
+
+    const globalSpecs = user.defaultGlobalSpecs
+      ? { ...DEFAULT_GLOBAL_SPECS, ...user.defaultGlobalSpecs }
+      : DEFAULT_GLOBAL_SPECS;
+
+    setOrder(prev => ({
+      ...prev,
+      globalSpecs,
+      // Merchant → pre-fill merchant field from their company
+      merchant: user.role === 'merchant' ? (user.company || prev.merchant) : (user.defaultMerchant || prev.merchant),
+      // Builder → pre-fill contact name from their name
+      contactName: user.role === 'builder' ? (user.name || prev.contactName) : prev.contactName,
+      siteAddress: user.defaultLocation || prev.siteAddress,
+    }));
+
+    // Fetch draft count for badge
+    fetch(`/api/orders/drafts/${user.id}`)
+      .then(r => r.json())
+      .then((drafts: OrderRecord[]) => setDraftCount(Array.isArray(drafts) ? drafts.length : 0))
+      .catch(() => {});
   }, [user]);
 
   const handleHeaderChange = (field: keyof OrderData, value: any) => {
@@ -77,7 +122,7 @@ export default function App() {
   const handleGlobalSpecsChange = (field: keyof GlobalSpecs, value: any) => {
     setOrder(prev => ({
       ...prev,
-      globalSpecs: { ...prev.globalSpecs, [field]: value }
+      globalSpecs: { ...prev.globalSpecs, [field]: value },
     }));
   };
 
@@ -106,33 +151,30 @@ export default function App() {
   const updateDoor = (id: string, field: keyof DoorOrderRow, value: any) => {
     setOrder(prev => ({
       ...prev,
-      doors: prev.doors.map(d => d.id === id ? { ...d, [field]: value } : d)
+      doors: prev.doors.map(d => d.id === id ? { ...d, [field]: value } : d),
     }));
   };
 
   const deleteDoor = (id: string) => {
-    setOrder(prev => ({
-      ...prev,
-      doors: prev.doors.filter(d => d.id !== id)
-    }));
+    setOrder(prev => ({ ...prev, doors: prev.doors.filter(d => d.id !== id) }));
   };
 
   const nextStep = () => {
-    const currentIndex = STEPS.findIndex(s => s.id === currentStep);
-    if (currentIndex < STEPS.length - 1) {
+    const idx = STEPS.findIndex(s => s.id === currentStep);
+    if (idx < STEPS.length - 1) {
       setShowSavedAnimation(true);
       setTimeout(() => {
         setShowSavedAnimation(false);
-        setCurrentStep(STEPS[currentIndex + 1].id);
+        setCurrentStep(STEPS[idx + 1].id);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }, 600);
     }
   };
 
   const prevStep = () => {
-    const currentIndex = STEPS.findIndex(s => s.id === currentStep);
-    if (currentIndex > 0) {
-      setCurrentStep(STEPS[currentIndex - 1].id);
+    const idx = STEPS.findIndex(s => s.id === currentStep);
+    if (idx > 0) {
+      setCurrentStep(STEPS[idx - 1].id);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -140,12 +182,19 @@ export default function App() {
   const confirmSubmit = async () => {
     if (!user) return;
     setIsSubmitted(true);
+    // Strip isDraft flag before submitting for real
+    const { isDraft: _removed, ...cleanOrder } = order as any;
     try {
       await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, data: order }),
+        body: JSON.stringify({ userId: user.id, data: cleanOrder }),
       });
+      // Refresh draft count
+      fetch(`/api/orders/drafts/${user.id}`)
+        .then(r => r.json())
+        .then((drafts: OrderRecord[]) => setDraftCount(Array.isArray(drafts) ? drafts.length : 0))
+        .catch(() => {});
       setTimeout(() => {
         setIsSubmitted(false);
         setCurrentStep('INFO');
@@ -158,13 +207,17 @@ export default function App() {
   };
 
   const handleReorder = (orderData: OrderData) => {
-    setOrder({ ...orderData, orderNumber: '' }); // Clear old order number
+    // Strip draft flag and old order number when re-using
+    const { isDraft: _d, ...clean } = orderData as any;
+    setOrder({ ...clean, orderNumber: '' });
     setCurrentStep('INFO');
   };
 
   const handleLogout = () => {
     setUser(null);
     setCurrentStep('INFO');
+    setOrder(INITIAL_STATE);
+    setDraftCount(0);
   };
 
   if (!user) {
@@ -173,11 +226,15 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-apple-bg flex flex-col font-sans">
-      {/* Navigation / Header */}
+
+      {/* ── Navigation / Header ─────────────────────────────────────────────── */}
       <header className="glass sticky top-0 z-50 no-print shrink-0 px-6 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-apple-blue p-2 rounded-[10px] shadow-sm cursor-pointer" onClick={() => setCurrentStep('INFO')}>
+            <div
+              className="bg-apple-blue p-2 rounded-[10px] shadow-sm cursor-pointer"
+              onClick={() => setCurrentStep('INFO')}
+            >
               <DoorOpen className="text-white w-5 h-5" strokeWidth={2.5} />
             </div>
             <div>
@@ -185,15 +242,32 @@ export default function App() {
               <p className="text-[10px] text-apple-gray font-semibold uppercase tracking-wider">Order Portal</p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-4">
-            <button 
+
+          <div className="flex items-center gap-3">
+            {/* Role badge */}
+            <RoleBadge user={user} />
+
+            {/* Drafts badge */}
+            {draftCount > 0 && (
+              <button
+                onClick={() => setCurrentStep('SETTINGS')}
+                className="flex items-center gap-1.5 bg-apple-blue/10 hover:bg-apple-blue/20 px-3 py-1.5 rounded-full transition-all"
+                title="You have draft orders"
+              >
+                <FileEdit className="w-3.5 h-3.5 text-apple-blue" strokeWidth={2.5} />
+                <span className="text-[11px] font-bold text-apple-blue">{draftCount} Draft{draftCount !== 1 ? 's' : ''}</span>
+              </button>
+            )}
+
+            <button
               onClick={() => setCurrentStep('SETTINGS')}
-              className={`p-2 rounded-full transition-all active:scale-95 ${currentStep === 'SETTINGS' ? 'bg-apple-blue text-white' : 'text-apple-blue hover:bg-black/[0.05]'}`}
+              className={`p-2 rounded-full transition-all active:scale-95 ${
+                currentStep === 'SETTINGS' ? 'bg-apple-blue text-white' : 'text-apple-blue hover:bg-black/[0.05]'
+              }`}
             >
               <UserIcon className="w-5 h-5" strokeWidth={2} />
             </button>
-            <button 
+            <button
               onClick={handleLogout}
               className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-all active:scale-95"
             >
@@ -208,31 +282,30 @@ export default function App() {
         </div>
       </header>
 
-      {/* Step Indicator */}
+      {/* ── Step Indicator ──────────────────────────────────────────────────── */}
       {currentStep !== 'SETTINGS' && (
         <div className="bg-white/50 backdrop-blur-md border-b border-black/[0.05] no-print sticky top-[56px] z-40 shrink-0">
           <div className="max-w-5xl mx-auto px-6">
             <div className="flex items-center justify-between py-6">
               {STEPS.map((step, index) => {
                 const Icon = step.icon;
-                const isActive = step.id === currentStep;
+                const isActive    = step.id === currentStep;
                 const isCompleted = STEPS.findIndex(s => s.id === currentStep) > index;
-                
                 return (
                   <div key={step.id} className="flex items-center flex-1 last:flex-none">
                     <button
-                      onClick={() => {
-                        if (isCompleted || isActive) setCurrentStep(step.id);
-                      }}
-                      className={`flex flex-col items-center gap-2 transition-all outline-none group ${
+                      onClick={() => { if (isCompleted || isActive) setCurrentStep(step.id); }}
+                      className={`flex flex-col items-center gap-2 transition-all outline-none ${
                         isActive ? 'scale-105' : ''
                       } ${isCompleted || isActive ? 'cursor-pointer' : 'cursor-default opacity-30'}`}
                     >
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                        isActive ? 'bg-apple-blue text-white shadow-lg shadow-apple-blue/20' : 
+                        isActive    ? 'bg-apple-blue text-white shadow-lg shadow-apple-blue/20' :
                         isCompleted ? 'bg-emerald-500 text-white' : 'bg-black/[0.05] text-black/40'
                       }`}>
-                        {isCompleted ? <Check className="w-5 h-5" strokeWidth={3} /> : <Icon className="w-5 h-5" strokeWidth={2} />}
+                        {isCompleted
+                          ? <Check className="w-5 h-5" strokeWidth={3} />
+                          : <Icon className="w-5 h-5" strokeWidth={2} />}
                       </div>
                       <span className={`text-[10px] font-bold uppercase tracking-tight ${
                         isActive ? 'text-apple-blue' : 'text-black/40'
@@ -242,7 +315,7 @@ export default function App() {
                     </button>
                     {index < STEPS.length - 1 && (
                       <div className="flex-1 mx-6 h-[2px] bg-black/[0.05] rounded-full overflow-hidden">
-                        <motion.div 
+                        <motion.div
                           className="h-full bg-apple-blue"
                           initial={false}
                           animate={{ width: isCompleted ? '100%' : '0%' }}
@@ -258,7 +331,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Content Area */}
+      {/* ── Main Content ────────────────────────────────────────────────────── */}
       <main className="flex-1 relative overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
@@ -296,11 +369,11 @@ export default function App() {
 
             {currentStep === 'SCHEDULE' && (
               <div className="space-y-12">
-                <OrderTable 
-                  data={order} 
-                  onAddRow={addDoor} 
-                  onUpdateRow={updateDoor} 
-                  onDeleteRow={deleteDoor} 
+                <OrderTable
+                  data={order}
+                  onAddRow={addDoor}
+                  onUpdateRow={updateDoor}
+                  onDeleteRow={deleteDoor}
                 />
                 <div className="flex justify-between pt-4">
                   <button onClick={prevStep} className="apple-button-secondary">Back</button>
@@ -335,15 +408,9 @@ export default function App() {
                       }`}
                     >
                       {isSubmitted ? (
-                        <>
-                          <CheckCircle2 className="w-6 h-6" strokeWidth={2.5} />
-                          Order Sent
-                        </>
+                        <><CheckCircle2 className="w-6 h-6" strokeWidth={2.5} /> Order Sent</>
                       ) : (
-                        <>
-                          Confirm and Send
-                          <Send className="w-5 h-5" strokeWidth={2.5} />
-                        </>
+                        <>Confirm and Send <Send className="w-5 h-5" strokeWidth={2.5} /></>
                       )}
                     </button>
                   </div>
@@ -352,17 +419,18 @@ export default function App() {
             )}
 
             {currentStep === 'SETTINGS' && (
-              <AccountSettings 
-                user={user} 
-                onUpdate={setUser} 
+              <AccountSettings
+                user={user}
+                onUpdate={setUser}
                 onReorder={handleReorder}
+                onDraftCountChange={setDraftCount}
               />
             )}
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* Saved Animation Overlay */}
+      {/* ── Saved animation overlay ─────────────────────────────────────────── */}
       <AnimatePresence>
         {showSavedAnimation && (
           <motion.div
@@ -383,14 +451,14 @@ export default function App() {
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold tracking-tight text-black">Section Saved</p>
-                <p className="text-sm text-black/40 font-medium">Updating schedule...</p>
+                <p className="text-sm text-black/40 font-medium">Updating schedule…</p>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Success Toast */}
+      {/* ── Success toast ───────────────────────────────────────────────────── */}
       <AnimatePresence>
         {isSubmitted && (
           <motion.div
