@@ -10,7 +10,16 @@ dotenv.config();
 const ORDER_EMAIL    = process.env.ORDER_EMAIL    || "cromwellorders@iddoors.co.nz";
 const FROM_EMAIL     = process.env.FROM_EMAIL     || "portal@iddoors.co.nz";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "iddoors-admin";
+const ADMIN_SIGNUP_KEY = process.env.ADMIN_SIGNUP_KEY || "id-admin-key-2024";
 const IMPORT_API_KEY = "id-internal-import-key";
+
+// ── Location emails ───────────────────────────────────────────────────────────
+
+const LOCATION_EMAILS: Record<string, string> = {
+  cromwell: 'cromwellorders@iddoors.co.nz',
+  christchurch: 'info@iddoors.co.nz',
+  timaru: 'matt@iddoors.co.nz',
+};
 
 // ── Email template ────────────────────────────────────────────────────────────
 
@@ -144,7 +153,11 @@ function ensureDbReady(): Promise<void> {
         password TEXT,
         name TEXT,
         defaultMerchant TEXT,
-        defaultLocation TEXT
+        defaultLocation TEXT,
+        defaultGlobalSpecs TEXT,
+        role TEXT DEFAULT 'merchant',
+        company TEXT,
+        location TEXT
       )
     `);
     await db.execute(`
@@ -153,6 +166,9 @@ function ensureDbReady(): Promise<void> {
         userId TEXT,
         data TEXT,
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'draft',
+        floorPlanData TEXT,
+        reviewNotes TEXT,
         FOREIGN KEY(userId) REFERENCES users(id)
       )
     `);
@@ -160,8 +176,12 @@ function ensureDbReady(): Promise<void> {
     // Additive columns — wrapped in try/catch so duplicates are silently ignored
     for (const col of [
       'ALTER TABLE users ADD COLUMN defaultGlobalSpecs TEXT',
-      'ALTER TABLE users ADD COLUMN role TEXT',
+      'ALTER TABLE users ADD COLUMN role TEXT DEFAULT \'merchant\'',
       'ALTER TABLE users ADD COLUMN company TEXT',
+      'ALTER TABLE users ADD COLUMN location TEXT',
+      'ALTER TABLE orders ADD COLUMN status TEXT DEFAULT \'approved\'',
+      'ALTER TABLE orders ADD COLUMN floorPlanData TEXT',
+      'ALTER TABLE orders ADD COLUMN reviewNotes TEXT',
     ]) {
       try { await db.execute(col); } catch (_) { /* already exists */ }
     }
@@ -177,7 +197,7 @@ export function createApp() {
   const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
   const app = express();
-  app.use(express.json());
+  app.use(express.json({ limit: '10mb' }));
 
   // CORS — allow cross-origin calls from the Door AI frontend
   app.use((_req, res, next) => {
@@ -214,36 +234,55 @@ export function createApp() {
       defaultMerchant: row.defaultMerchant ?? null,
       defaultLocation: row.defaultLocation ?? null,
       defaultGlobalSpecs: parseJsonField(row.defaultGlobalSpecs),
-      role: row.role ?? null,
+      role: row.role ?? 'merchant',
       company: row.company ?? null,
+      location: row.location ?? null,
     };
   }
 
   // ── Auth ────────────────────────────────────────────────────────────────────
 
   app.post("/api/auth/signup", async (req, res) => {
-    const { email, password, name, defaultGlobalSpecs, role, company } = req.body;
+    const { email, password, name, defaultGlobalSpecs, role, company, location, adminSignupKey } = req.body;
     if (!email || !password || !name) {
       return res.status(400).json({ error: "Email, password, and name are required" });
     }
+
+    // Only allow admin role if the correct key is provided
+    const resolvedRole = role || 'merchant';
+    if (resolvedRole === 'admin') {
+      if (adminSignupKey !== ADMIN_SIGNUP_KEY) {
+        return res.status(403).json({ error: "Invalid admin signup key" });
+      }
+    }
+
     const id = crypto.randomUUID();
     try {
       const db = getDb();
       const hashed = await bcrypt.hash(password, 12);
       await db.execute({
-        sql: `INSERT INTO users (id, email, password, name, defaultGlobalSpecs, role, company)
-              VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        sql: `INSERT INTO users (id, email, password, name, defaultGlobalSpecs, role, company, location)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         args: [
           id,
           email.toLowerCase().trim(),
           hashed,
           name.trim(),
           defaultGlobalSpecs ? JSON.stringify(defaultGlobalSpecs) : null,
-          role ?? null,
+          resolvedRole,
           company ?? null,
+          location ?? null,
         ],
       });
-      res.json({ id, email: email.toLowerCase().trim(), name: name.trim(), defaultGlobalSpecs: defaultGlobalSpecs ?? null, role: role ?? null, company: company ?? null });
+      res.json({
+        id,
+        email: email.toLowerCase().trim(),
+        name: name.trim(),
+        defaultGlobalSpecs: defaultGlobalSpecs ?? null,
+        role: resolvedRole,
+        company: company ?? null,
+        location: location ?? null,
+      });
     } catch (error: any) {
       if (error.message?.includes("UNIQUE")) {
         res.status(400).json({ error: "An account with that email already exists" });
@@ -284,13 +323,13 @@ export function createApp() {
   });
 
   app.put("/api/user/profile/:id", async (req, res) => {
-    const { name, defaultMerchant, defaultLocation, defaultGlobalSpecs, role, company } = req.body;
+    const { name, defaultMerchant, defaultLocation, defaultGlobalSpecs, role, company, location } = req.body;
     try {
       const db = getDb();
       await db.execute({
         sql: `UPDATE users
               SET name = ?, defaultMerchant = ?, defaultLocation = ?,
-                  defaultGlobalSpecs = ?, role = ?, company = ?
+                  defaultGlobalSpecs = ?, role = ?, company = ?, location = ?
               WHERE id = ?`,
         args: [
           name,
@@ -299,6 +338,7 @@ export function createApp() {
           defaultGlobalSpecs ? JSON.stringify(defaultGlobalSpecs) : null,
           role ?? null,
           company ?? null,
+          location ?? null,
           req.params.id,
         ],
       });
@@ -316,7 +356,11 @@ export function createApp() {
       sql: "SELECT * FROM orders WHERE userId = ? ORDER BY createdAt DESC",
       args: [req.params.userId],
     });
-    res.json(result.rows.map((o: any) => ({ ...o, data: JSON.parse(o.data as string) })));
+    res.json(result.rows.map((o: any) => ({
+      ...o,
+      data: JSON.parse(o.data as string),
+      floorPlanData: o.floorPlanData ? parseJsonField(o.floorPlanData) : null,
+    })));
   });
 
   app.get("/api/orders/drafts/:userId", async (req, res) => {
@@ -326,40 +370,103 @@ export function createApp() {
         sql: "SELECT * FROM orders WHERE userId = ? AND JSON_EXTRACT(data, '$.isDraft') = 1 ORDER BY createdAt DESC",
         args: [req.params.userId],
       });
-      res.json(result.rows.map((o: any) => ({ ...o, data: JSON.parse(o.data as string) })));
+      res.json(result.rows.map((o: any) => ({
+        ...o,
+        data: JSON.parse(o.data as string),
+        floorPlanData: o.floorPlanData ? parseJsonField(o.floorPlanData) : null,
+      })));
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
   });
 
   app.post("/api/orders", async (req, res) => {
-    const { userId, data } = req.body;
+    const { userId, data, floorPlanData } = req.body;
     if (!userId || !data) return res.status(400).json({ error: "userId and data are required" });
 
     const id = crypto.randomUUID();
     try {
       const db = getDb();
-      await db.execute({
-        sql: "INSERT INTO orders (id, userId, data) VALUES (?, ?, ?)",
-        args: [id, userId, JSON.stringify(data)],
-      });
+
+      // Get user info to determine routing
       const userResult = await db.execute({
-        sql: "SELECT name FROM users WHERE id = ?",
+        sql: "SELECT name, role, email, location FROM users WHERE id = ?",
         args: [userId],
       });
-      const userName = (userResult.rows[0] as any)?.name || "Unknown User";
+      const user = userResult.rows[0] as any;
+      if (!user) return res.status(404).json({ error: "User not found" });
 
-      // TODO: Re-enable order email once admin review flow is implemented
-      // if (resend) {
-      //   resend.emails.send({
-      //     from: FROM_EMAIL,
-      //     to: ORDER_EMAIL,
-      //     subject: `New Door Order: ${data.jobName || 'Untitled'} — ${data.doors?.length || 0} Door${data.doors?.length !== 1 ? 's' : ''}`,
-      //     html: buildOrderEmailHtml(id, data, userName),
-      //   }).catch((err: Error) => console.error("[email] Failed:", err.message));
-      // }
+      const userRole = user.role || 'merchant';
+      const userLocation = user.location as string | null;
+      const userName = (user.name as string) || "Unknown User";
+      const userEmail = user.email as string;
 
-      res.json({ id });
+      // Determine status based on role
+      const isStaff = userRole === 'staff';
+      const status = isStaff ? 'pending_review' : 'approved';
+
+      await db.execute({
+        sql: "INSERT INTO orders (id, userId, data, status, floorPlanData) VALUES (?, ?, ?, ?, ?)",
+        args: [
+          id,
+          userId,
+          JSON.stringify(data),
+          status,
+          floorPlanData ? JSON.stringify(floorPlanData) : null,
+        ],
+      });
+
+      if (!isStaff) {
+        // merchant or builder — send order email immediately
+        const emailTo = (userLocation && LOCATION_EMAILS[userLocation]) || ORDER_EMAIL;
+        if (resend) {
+          resend.emails.send({
+            from: FROM_EMAIL,
+            to: emailTo,
+            subject: `New Door Order: ${data.jobName || 'Untitled'} — ${data.doors?.length || 0} Door${data.doors?.length !== 1 ? 's' : ''}`,
+            html: buildOrderEmailHtml(id, data, userName),
+          }).catch((err: Error) => console.error("[email] Order email failed:", err.message));
+        }
+      } else {
+        // staff — send admin notification, do NOT send order email
+        if (resend) {
+          let notifyEmails: string[] = [];
+
+          // Find admins at same location
+          if (userLocation) {
+            const adminResult = await db.execute({
+              sql: "SELECT email FROM users WHERE role = 'admin' AND location = ?",
+              args: [userLocation],
+            });
+            notifyEmails = adminResult.rows
+              .map((r: any) => r.email as string)
+              .filter(Boolean);
+          }
+
+          // Fall back to location email if no admins found
+          if (notifyEmails.length === 0) {
+            const fallback = (userLocation && LOCATION_EMAILS[userLocation]) || ORDER_EMAIL;
+            notifyEmails = [fallback];
+          }
+
+          resend.emails.send({
+            from: FROM_EMAIL,
+            to: notifyEmails,
+            subject: `Spec sheet pending review: ${data.jobName || 'Untitled'}`,
+            html: `
+              <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;">
+                <h2 style="color:#0071e3;">New Spec Sheet Awaiting Review</h2>
+                <p>A new spec sheet is pending your review.</p>
+                <p><strong>Job:</strong> ${data.jobName || 'Untitled'}<br>
+                <strong>Submitted by:</strong> ${userName} (${userEmail})<br>
+                <strong>Doors:</strong> ${data.doors?.length || 0}</p>
+                <p>Log in to the admin portal to review, approve, or request changes.</p>
+              </div>`,
+          }).catch((err: Error) => console.error("[email] Admin notify failed:", err.message));
+        }
+      }
+
+      res.json({ id, status });
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
@@ -402,7 +509,7 @@ export function createApp() {
       };
 
       await db.execute({
-        sql: "INSERT INTO orders (id, userId, data) VALUES (?, ?, ?)",
+        sql: "INSERT INTO orders (id, userId, data, status) VALUES (?, ?, ?, 'draft')",
         args: [orderId, user.id, JSON.stringify(orderData)],
       });
 
@@ -412,7 +519,7 @@ export function createApp() {
     }
   });
 
-  // ── Admin ───────────────────────────────────────────────────────────────────
+  // ── Admin — All orders ──────────────────────────────────────────────────────
 
   app.get("/api/admin/orders", async (req, res) => {
     if (req.headers["x-admin-password"] !== ADMIN_PASSWORD) {
@@ -422,15 +529,149 @@ export function createApp() {
       const db = getDb();
       const result = await db.execute(`
         SELECT orders.id, orders.data, orders.createdAt, orders.userId,
-               users.name as userName, users.email as userEmail
+               orders.status, orders.reviewNotes,
+               users.name as userName, users.email as userEmail, users.location as userLocation
         FROM orders LEFT JOIN users ON orders.userId = users.id
         ORDER BY orders.createdAt DESC
       `);
       res.json(result.rows.map((o: any) => ({
         id: o.id, createdAt: o.createdAt, userId: o.userId,
-        userName: o.userName, userEmail: o.userEmail,
+        userName: o.userName, userEmail: o.userEmail, userLocation: o.userLocation,
+        status: o.status ?? 'approved',
+        reviewNotes: o.reviewNotes ?? null,
         data: JSON.parse(o.data as string),
       })));
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ── Admin — Review queue ────────────────────────────────────────────────────
+
+  app.get("/api/admin/review-queue", async (req, res) => {
+    if (req.headers["x-admin-password"] !== ADMIN_PASSWORD) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+      const db = getDb();
+      const { location } = req.query;
+
+      let sql = `
+        SELECT orders.id, orders.data, orders.createdAt, orders.userId,
+               orders.status, orders.floorPlanData, orders.reviewNotes,
+               users.name as userName, users.email as userEmail, users.location as userLocation
+        FROM orders LEFT JOIN users ON orders.userId = users.id
+        WHERE orders.status = 'pending_review'
+      `;
+      const args: any[] = [];
+
+      if (location && typeof location === 'string') {
+        sql += " AND users.location = ?";
+        args.push(location);
+      }
+      sql += " ORDER BY orders.createdAt ASC";
+
+      const result = await db.execute({ sql, args });
+      res.json(result.rows.map((o: any) => ({
+        id: o.id,
+        createdAt: o.createdAt,
+        userId: o.userId,
+        status: o.status,
+        floorPlanData: o.floorPlanData ? parseJsonField(o.floorPlanData) : null,
+        reviewNotes: o.reviewNotes ?? null,
+        userName: o.userName,
+        userEmail: o.userEmail,
+        userLocation: o.userLocation,
+        data: JSON.parse(o.data as string),
+      })));
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/admin/orders/:id/approve", async (req, res) => {
+    if (req.headers["x-admin-password"] !== ADMIN_PASSWORD) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+      const db = getDb();
+      const orderId = req.params.id;
+
+      // Get order and user info
+      const result = await db.execute({
+        sql: `SELECT orders.data, users.name as userName, users.location as userLocation
+              FROM orders LEFT JOIN users ON orders.userId = users.id
+              WHERE orders.id = ?`,
+        args: [orderId],
+      });
+      const order = result.rows[0] as any;
+      if (!order) return res.status(404).json({ error: "Order not found" });
+
+      await db.execute({
+        sql: "UPDATE orders SET status = 'approved' WHERE id = ?",
+        args: [orderId],
+      });
+
+      const data = JSON.parse(order.data as string);
+      const emailTo = (order.userLocation && LOCATION_EMAILS[order.userLocation]) || ORDER_EMAIL;
+
+      if (resend) {
+        resend.emails.send({
+          from: FROM_EMAIL,
+          to: emailTo,
+          subject: `New Door Order: ${data.jobName || 'Untitled'} — ${data.doors?.length || 0} Door${data.doors?.length !== 1 ? 's' : ''}`,
+          html: buildOrderEmailHtml(orderId, data, order.userName || "Unknown"),
+        }).catch((err: Error) => console.error("[email] Approval email failed:", err.message));
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/admin/orders/:id/request-changes", async (req, res) => {
+    if (req.headers["x-admin-password"] !== ADMIN_PASSWORD) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+      const db = getDb();
+      const orderId = req.params.id;
+      const { reviewNotes } = req.body;
+
+      // Get order and user info
+      const result = await db.execute({
+        sql: `SELECT orders.data, users.name as userName, users.email as userEmail
+              FROM orders LEFT JOIN users ON orders.userId = users.id
+              WHERE orders.id = ?`,
+        args: [orderId],
+      });
+      const order = result.rows[0] as any;
+      if (!order) return res.status(404).json({ error: "Order not found" });
+
+      await db.execute({
+        sql: "UPDATE orders SET status = 'changes_requested', reviewNotes = ? WHERE id = ?",
+        args: [reviewNotes || null, orderId],
+      });
+
+      const data = JSON.parse(order.data as string);
+
+      if (resend && order.userEmail) {
+        resend.emails.send({
+          from: FROM_EMAIL,
+          to: order.userEmail as string,
+          subject: `Changes requested: ${data.jobName || 'Untitled'}`,
+          html: `
+            <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;">
+              <h2 style="color:#ff9500;">Changes Requested</h2>
+              <p>Changes have been requested on your spec sheet for <strong>${data.jobName || 'Untitled'}</strong>.</p>
+              ${reviewNotes ? `<p><strong>Notes from reviewer:</strong><br>${reviewNotes}</p>` : ''}
+              <p>Please log in to the portal to review and resubmit your order.</p>
+            </div>`,
+        }).catch((err: Error) => console.error("[email] Changes requested email failed:", err.message));
+      }
+
+      res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

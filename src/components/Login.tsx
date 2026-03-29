@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Lock, Mail, ArrowRight, ArrowLeft, ShieldCheck,
-  User as UserIcon, Store, Wrench, Shield, Check,
+  User as UserIcon, Store, Wrench, Shield, Check, MapPin,
 } from 'lucide-react';
 import { User, UserRole, GlobalSpecs } from '../types';
 import { GlobalSpecsCard } from './GlobalSpecs';
@@ -10,6 +10,12 @@ import { GlobalSpecsCard } from './GlobalSpecs';
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const NZ_MERCHANTS = ['PlaceMakers', 'Carters', 'ITM', 'Mitre 10', 'Bunnings', 'Noel Leeming Hardware'];
+
+const LOCATIONS: { value: string; label: string }[] = [
+  { value: 'cromwell',      label: 'Cromwell' },
+  { value: 'christchurch',  label: 'Christchurch' },
+  { value: 'timaru',        label: 'Timaru' },
+];
 
 const DEFAULT_SPECS: GlobalSpecs = {
   hingeDetails: '',
@@ -95,6 +101,8 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
   const [customCompany, setCustomCompany] = useState('');
   const [specs, setSpecs] = useState<GlobalSpecs>({ ...DEFAULT_SPECS });
 
+  const [location, setLocation] = useState('');
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -114,6 +122,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
     setRole('');
     setSelectedMerchant('');
     setCustomCompany('');
+    setLocation('');
     setSpecs({ ...DEFAULT_SPECS });
     setError(null);
   };
@@ -130,6 +139,10 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
     if (signupStep === 1) {
       if (!name.trim() || !email.trim() || !password) {
         setError('All fields are required');
+        return;
+      }
+      if (!location) {
+        setError('Please select your branch location');
         return;
       }
       setSignupStep(2);
@@ -185,6 +198,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
           defaultGlobalSpecs: specs,
           role: role || null,
           company: companyValue.trim() || null,
+          location: location || null,
         }),
       });
       const data = await res.json();
@@ -323,6 +337,22 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/20" strokeWidth={2} />
                     <input required type="password" value={password} onChange={e => setPassword(e.target.value)}
                       className="apple-input pl-12" placeholder="Required" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[13px] font-semibold text-black/60 ml-1">Branch Location</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/20 pointer-events-none" strokeWidth={2} />
+                    <select
+                      value={location}
+                      onChange={e => setLocation(e.target.value)}
+                      className="apple-input pl-12 appearance-none bg-white cursor-pointer"
+                    >
+                      <option value="">Select your location…</option>
+                      {LOCATIONS.map(l => (
+                        <option key={l.value} value={l.value}>{l.label}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 {error && <ErrorBanner message={error} />}

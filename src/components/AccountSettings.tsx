@@ -5,7 +5,7 @@ import {
   History, RotateCcw, Settings, FileEdit, ArrowRight,
   Store, Wrench, Shield,
 } from 'lucide-react';
-import { User, OrderRecord, GlobalSpecs, UserRole } from '../types';
+import { User, OrderRecord, GlobalSpecs, UserRole, OrderStatus } from '../types';
 import { GlobalSpecsCard } from './GlobalSpecs';
 
 const DEFAULT_SPECS: GlobalSpecs = {
@@ -19,9 +19,10 @@ const DEFAULT_SPECS: GlobalSpecs = {
 };
 
 const ROLE_LABELS: Record<UserRole, { label: string; icon: React.ElementType }> = {
-  merchant: { label: 'Merchant',          icon: Store  },
+  merchant: { label: 'Merchant',             icon: Store  },
   builder:  { label: 'Builder / Contractor', icon: Wrench },
-  staff:    { label: 'Internal Staff',    icon: Shield },
+  staff:    { label: 'Internal Staff',       icon: Shield },
+  admin:    { label: 'Admin',                icon: Shield },
 };
 
 interface Props {
@@ -36,6 +37,7 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
   const [defaultMerchant, setDefaultMerchant]   = useState(user.defaultMerchant || '');
   const [defaultLocation, setDefaultLocation]   = useState(user.defaultLocation || '');
   const [company, setCompany]                   = useState(user.company || '');
+  const [location, setLocation]                 = useState(user.location || '');
   const [globalSpecs, setGlobalSpecs]           = useState<GlobalSpecs>(
     user.defaultGlobalSpecs ? { ...DEFAULT_SPECS, ...user.defaultGlobalSpecs } : { ...DEFAULT_SPECS }
   );
@@ -77,10 +79,11 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
           defaultGlobalSpecs: globalSpecs,
           role: user.role,
           company,
+          location: location || null,
         }),
       });
       if (res.ok) {
-        onUpdate({ ...user, name, defaultMerchant, defaultLocation, defaultGlobalSpecs: globalSpecs, company });
+        onUpdate({ ...user, name, defaultMerchant, defaultLocation, defaultGlobalSpecs: globalSpecs, company, location: location || undefined });
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
       }
@@ -164,6 +167,22 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
               </label>
               <input type="text" value={defaultLocation} onChange={e => setDefaultLocation(e.target.value)}
                 className="apple-input" placeholder="Optional" />
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-[13px] font-bold text-black/60 ml-1 uppercase tracking-wider flex items-center gap-2">
+                <MapPin className="w-4 h-4" /> Branch Location
+              </label>
+              <select
+                value={location}
+                onChange={e => setLocation(e.target.value)}
+                className="apple-input appearance-none bg-white cursor-pointer"
+              >
+                <option value="">Not set</option>
+                <option value="cromwell">Cromwell</option>
+                <option value="christchurch">Christchurch</option>
+                <option value="timaru">Timaru</option>
+              </select>
             </div>
           </div>
 
@@ -297,10 +316,16 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
                     <span className="text-[10px] font-bold bg-black/5 px-2 py-1 rounded-full text-black/40 uppercase tracking-tighter">
                       #{order.id.slice(0, 8)}
                     </span>
+                    <OrderStatusBadge status={order.status} />
                   </div>
                   <p className="text-sm text-apple-gray font-medium">
                     {new Date(order.createdAt).toLocaleDateString()} · {order.data.doors?.length ?? 0} Doors
                   </p>
+                  {order.reviewNotes && (
+                    <p className="text-sm text-red-500 font-medium mt-1">
+                      <span className="font-bold">Review notes:</span> {order.reviewNotes}
+                    </p>
+                  )}
                 </div>
                 <button
                   onClick={() => onReorder(order.data)}
@@ -317,3 +342,36 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
     </div>
   );
 };
+
+// ── Order status badge ────────────────────────────────────────────────────────
+
+function OrderStatusBadge({ status }: { status?: OrderStatus }) {
+  switch (status) {
+    case 'approved':
+      return (
+        <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+          Approved
+        </span>
+      );
+    case 'pending_review':
+      return (
+        <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+          Awaiting Review
+        </span>
+      );
+    case 'changes_requested':
+      return (
+        <span className="text-[10px] font-bold bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+          Changes Requested
+        </span>
+      );
+    case 'draft':
+      return (
+        <span className="text-[10px] font-bold bg-black/5 text-black/40 border border-black/[0.08] px-2 py-0.5 rounded-full uppercase tracking-tighter">
+          Draft
+        </span>
+      );
+    default:
+      return null;
+  }
+}

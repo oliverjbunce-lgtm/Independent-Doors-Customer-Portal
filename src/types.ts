@@ -1,10 +1,12 @@
-export type UserRole = 'merchant' | 'builder' | 'staff';
+export type UserRole = 'merchant' | 'builder' | 'staff' | 'admin';
 export type Hanging = 'LH' | 'RH' | 'Slider' | 'Bi-Fold';
 export type DoorCore = 'Poly' | 'Solid' | 'Honeycomb';
 export type DoorFinish = 'Primed' | 'White' | 'RAW' | 'Custom';
 export type JambMaterial = 'MDF' | 'Pine';
 export type JambStyle = 'Flat' | 'Groove';
 export type FrameType = 'Standard' | 'Cavity' | 'Bifold' | 'Wardrobe' | 'Custom';
+export type OrderStatus = 'draft' | 'pending_review' | 'approved' | 'changes_requested';
+export type UserLocation = 'cromwell' | 'christchurch' | 'timaru';
 
 export interface GlobalSpecs {
   hingeDetails: string;
@@ -57,6 +59,7 @@ export interface User {
   defaultMerchant?: string;
   defaultLocation?: string;
   defaultGlobalSpecs?: GlobalSpecs;
+  location?: UserLocation | string | null;
 }
 
 export interface OrderRecord {
@@ -64,4 +67,7 @@ export interface OrderRecord {
   userId: string;
   data: OrderData;
   createdAt: string;
+  status?: OrderStatus;
+  floorPlanData?: any;
+  reviewNotes?: string | null;
 }
