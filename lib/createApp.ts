@@ -349,16 +349,15 @@ export function createApp() {
       });
       const userName = (userResult.rows[0] as any)?.name || "Unknown User";
 
-      if (resend) {
-        resend.emails.send({
-          from: FROM_EMAIL,
-          to: ORDER_EMAIL,
-          subject: `New Door Order: ${data.jobName || 'Untitled'} — ${data.doors?.length || 0} Door${data.doors?.length !== 1 ? 's' : ''}`,
-          html: buildOrderEmailHtml(id, data, userName),
-        }).catch((err: Error) => console.error("[email] Failed:", err.message));
-      } else {
-        console.warn("[email] RESEND_API_KEY not set — skipping");
-      }
+      // TODO: Re-enable order email once admin review flow is implemented
+      // if (resend) {
+      //   resend.emails.send({
+      //     from: FROM_EMAIL,
+      //     to: ORDER_EMAIL,
+      //     subject: `New Door Order: ${data.jobName || 'Untitled'} — ${data.doors?.length || 0} Door${data.doors?.length !== 1 ? 's' : ''}`,
+      //     html: buildOrderEmailHtml(id, data, userName),
+      //   }).catch((err: Error) => console.error("[email] Failed:", err.message));
+      // }
 
       res.json({ id });
     } catch (error: any) {
