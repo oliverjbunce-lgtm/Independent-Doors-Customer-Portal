@@ -183,7 +183,7 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-apple-bg font-sans">
       {/* Header */}
-      <header className="glass sticky top-0 z-50 px-6 py-3">
+      <header className="glass sticky top-0 z-50 px-4 sm:px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-apple-blue p-2 rounded-[10px] shadow-sm">
@@ -211,7 +211,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <AnimatePresence mode="wait">
           {selectedOrder ? (
             <motion.div
@@ -288,7 +288,7 @@ export const AdminDashboard: React.FC = () => {
 
               {/* ── Review Queue ── */}
               <div className="apple-card overflow-hidden">
-                <div className="px-8 py-6 border-b border-black/[0.05] flex items-center justify-between gap-4 flex-wrap">
+                <div className="px-4 sm:px-8 py-5 sm:py-6 border-b border-black/[0.05] flex items-center justify-between gap-4 flex-wrap">
                   <div>
                     <div className="flex items-center gap-3">
                       <h2 className="text-lg font-bold text-black tracking-tight">Review Queue</h2>
@@ -328,7 +328,7 @@ export const AdminDashboard: React.FC = () => {
                       <div
                         key={item.id}
                         onClick={() => { setReviewingOrder(item); setReviewNotes(''); setShowChangesForm(false); }}
-                        className="px-8 py-5 flex items-center justify-between gap-4 cursor-pointer hover:bg-amber-50/60 transition-colors group"
+                        className="px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between gap-4 cursor-pointer hover:bg-amber-50/60 transition-colors group"
                       >
                         <div className="space-y-1 min-w-0 flex-1">
                           <div className="flex items-center gap-3 flex-wrap">
@@ -355,7 +355,7 @@ export const AdminDashboard: React.FC = () => {
 
               {/* ── All Orders ── */}
               <div className="apple-card overflow-hidden">
-                <div className="px-8 py-6 border-b border-black/[0.05]">
+                <div className="px-4 sm:px-8 py-5 sm:py-6 border-b border-black/[0.05]">
                   <h2 className="text-lg font-bold text-black tracking-tight">All Orders</h2>
                   <p className="text-sm text-apple-gray font-medium mt-0.5">Click a row to view full details</p>
                 </div>
@@ -371,62 +371,75 @@ export const AdminDashboard: React.FC = () => {
                     <p className="text-sm opacity-60 mt-1">Orders will appear here once submitted</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-black/[0.02] border-b border-black/[0.05]">
-                          <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Job Name</th>
-                          <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Merchant</th>
-                          <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Contact</th>
-                          <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Doors</th>
-                          <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Status</th>
-                          <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Submitted</th>
-                          <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">By</th>
-                          <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Location</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-black/[0.03]">
-                        {orders.map(order => (
-                          <tr
-                            key={order.id}
-                            onClick={() => setSelectedOrder(order)}
-                            className="cursor-pointer hover:bg-apple-blue/[0.03] transition-colors group"
-                          >
-                            <td className="px-6 py-4">
-                              <span className="text-[14px] font-bold text-black group-hover:text-apple-blue transition-colors">
-                                {order.data.jobName || 'Untitled'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-[13px] font-medium text-black/60">
-                              {order.data.merchant || '—'}
-                            </td>
-                            <td className="px-6 py-4 text-[13px] font-medium text-black/60">
-                              {order.data.contactName || '—'}
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className="inline-flex items-center justify-center bg-apple-blue/10 text-apple-blue text-[12px] font-bold px-3 py-1 rounded-full">
-                                {order.data.doors?.length || 0}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <AdminStatusBadge status={order.status} />
-                            </td>
-                            <td className="px-6 py-4 text-[13px] font-medium text-black/60">
-                              {new Date(order.createdAt).toLocaleDateString('en-NZ', {
-                                day: 'numeric', month: 'short', year: 'numeric'
-                              })}
-                            </td>
-                            <td className="px-6 py-4 text-[13px] font-medium text-black/60">
-                              {order.userName || '—'}
-                            </td>
-                            <td className="px-6 py-4">
-                              <LocationBadge location={order.userLocation} />
-                            </td>
+                  <>
+                    {/* Desktop table */}
+                    <div className="hidden sm:block overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-black/[0.02] border-b border-black/[0.05]">
+                            <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Job Name</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Merchant</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Doors</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Status</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Submitted</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">By</th>
+                            <th className="px-6 py-4 text-[11px] font-bold text-apple-gray uppercase tracking-tight">Location</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody className="divide-y divide-black/[0.03]">
+                          {orders.map(order => (
+                            <tr key={order.id} onClick={() => setSelectedOrder(order)}
+                              className="cursor-pointer hover:bg-apple-blue/[0.03] transition-colors group">
+                              <td className="px-6 py-4">
+                                <span className="text-[14px] font-bold text-black group-hover:text-apple-blue transition-colors">
+                                  {order.data.jobName || 'Untitled'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-[13px] font-medium text-black/60">{order.data.merchant || '—'}</td>
+                              <td className="px-6 py-4">
+                                <span className="inline-flex items-center justify-center bg-apple-blue/10 text-apple-blue text-[12px] font-bold px-3 py-1 rounded-full">
+                                  {order.data.doors?.length || 0}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4"><AdminStatusBadge status={order.status} /></td>
+                              <td className="px-6 py-4 text-[13px] font-medium text-black/60">
+                                {new Date(order.createdAt).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </td>
+                              <td className="px-6 py-4 text-[13px] font-medium text-black/60">{order.userName || '—'}</td>
+                              <td className="px-6 py-4"><LocationBadge location={order.userLocation} /></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile card list */}
+                    <div className="sm:hidden divide-y divide-black/[0.04]">
+                      {orders.map(order => (
+                        <div key={order.id} onClick={() => setSelectedOrder(order)}
+                          className="px-4 py-4 cursor-pointer hover:bg-apple-blue/[0.03] active:bg-apple-blue/[0.05] transition-colors">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap mb-1">
+                                <span className="font-bold text-[15px] text-black">{order.data.jobName || 'Untitled'}</span>
+                                <AdminStatusBadge status={order.status} />
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-[12px] text-apple-gray font-medium">
+                                  {new Date(order.createdAt).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                                {order.data.merchant && <span className="text-[12px] text-apple-gray font-medium">· {order.data.merchant}</span>}
+                                <LocationBadge location={order.userLocation} />
+                              </div>
+                            </div>
+                            <span className="inline-flex items-center justify-center bg-apple-blue/10 text-apple-blue text-[12px] font-bold px-2.5 py-1 rounded-full shrink-0">
+                              {order.data.doors?.length || 0}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             </motion.div>
