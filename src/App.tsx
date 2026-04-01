@@ -82,13 +82,25 @@ function RoleBadge({ user }: { user: User }) {
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 
+const SESSION_KEY = 'id_portal_user';
+
 export default function App() {
-  const [user, setUser]               = useState<User | null>(null);
+  const [user, setUser]               = useState<User | null>(() => {
+    try {
+      const saved = localStorage.getItem(SESSION_KEY);
+      return saved ? (JSON.parse(saved) as User) : null;
+    } catch { return null; }
+  });
   const [order, setOrder]             = useState<OrderData>(INITIAL_STATE);
   const [currentStep, setCurrentStep] = useState<Step>('INFO');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showSavedAnimation, setShowSavedAnimation] = useState(false);
   const [draftCount, setDraftCount]   = useState(0);
+
+  const handleLogin = useCallback((loggedInUser: User) => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(loggedInUser));
+    setUser(loggedInUser);
+  }, []);
 
   // Apply user defaults whenever user is set
   useEffect(() => {
@@ -214,6 +226,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem(SESSION_KEY);
     setUser(null);
     setCurrentStep('INFO');
     setOrder(INITIAL_STATE);
@@ -221,7 +234,7 @@ export default function App() {
   };
 
   if (!user) {
-    return <Login onLogin={setUser} />;
+    return <Login onLogin={handleLogin} />;
   }
 
   const currentStepIndex = STEPS.findIndex(s => s.id === currentStep);
