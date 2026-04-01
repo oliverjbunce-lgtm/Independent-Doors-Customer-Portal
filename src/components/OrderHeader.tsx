@@ -61,6 +61,8 @@ export const OrderHeader: React.FC<Props> = ({ data, onChange }) => {
             onChange={(e) => onChange('jobName', e.target.value)}
             className="apple-input"
             placeholder="Required"
+            inputMode="text"
+            autoComplete="off"
           />
         </div>
 
@@ -74,6 +76,8 @@ export const OrderHeader: React.FC<Props> = ({ data, onChange }) => {
             onChange={(e) => onChange('contactName', e.target.value)}
             className="apple-input"
             placeholder="Full Name"
+            inputMode="text"
+            autoComplete="name"
           />
         </div>
 
@@ -88,6 +92,8 @@ export const OrderHeader: React.FC<Props> = ({ data, onChange }) => {
             onChange={(e) => onChange('siteAddress', e.target.value)}
             className="apple-input"
             placeholder="Required"
+            inputMode="text"
+            autoComplete="street-address"
           />
         </div>
 
@@ -101,6 +107,8 @@ export const OrderHeader: React.FC<Props> = ({ data, onChange }) => {
             onChange={(e) => onChange('orderNumber', e.target.value)}
             className="apple-input"
             placeholder="Reference"
+            inputMode="text"
+            autoComplete="off"
           />
         </div>
 

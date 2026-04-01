@@ -69,6 +69,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
             value={row.height}
             onChange={(e) => onUpdate(row.id, 'height', e.target.value)}
             className="w-14 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            inputMode="numeric"
           />
           <span className="text-black/10 font-bold text-[11px]">×</span>
           <input
@@ -76,6 +77,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
             value={row.width}
             onChange={(e) => onUpdate(row.id, 'width', e.target.value)}
             className="w-14 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            inputMode="numeric"
           />
           <span className="text-black/10 font-bold text-[11px]">×</span>
           <input
@@ -83,6 +85,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
             value={row.thickness}
             onChange={(e) => onUpdate(row.id, 'thickness', e.target.value)}
             className="w-10 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            inputMode="numeric"
           />
         </div>
       </td>
@@ -96,6 +99,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
             onChange={(e) => onUpdate(row.id, 'trimHeight', e.target.value)}
             className="w-14 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
             placeholder="TH"
+            inputMode="numeric"
           />
           <span className="text-black/10 font-bold text-[11px]">×</span>
           <input
@@ -104,6 +108,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
             onChange={(e) => onUpdate(row.id, 'trimWidth', e.target.value)}
             className="w-14 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
             placeholder="TW"
+            inputMode="numeric"
           />
         </div>
       </td>
@@ -116,6 +121,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
             value={row.floorGap}
             onChange={(e) => onUpdate(row.id, 'floorGap', e.target.value)}
             className="w-12 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            inputMode="numeric"
           />
           <span className="text-black/10 font-bold text-[11px]">/</span>
           <input
@@ -123,6 +129,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
             value={row.gibFrameSize}
             onChange={(e) => onUpdate(row.id, 'gibFrameSize', e.target.value)}
             className="w-12 px-2 py-1.5 text-[13px] font-semibold bg-black/[0.03] border-none rounded-[8px] focus:ring-2 focus:ring-apple-blue/20 outline-none text-center"
+            inputMode="numeric"
           />
         </div>
       </td>
@@ -279,17 +286,17 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-black/30 ml-1">Height</span>
               <input type="text" value={row.height} onChange={(e) => onUpdate(row.id, 'height', e.target.value)}
-                className="apple-input text-center px-2 text-sm" placeholder="H" />
+                className="apple-input text-center px-2 text-sm" placeholder="H" inputMode="numeric" />
             </div>
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-black/30 ml-1">Width</span>
               <input type="text" value={row.width} onChange={(e) => onUpdate(row.id, 'width', e.target.value)}
-                className="apple-input text-center px-2 text-sm" placeholder="W" />
+                className="apple-input text-center px-2 text-sm" placeholder="W" inputMode="numeric" />
             </div>
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-black/30 ml-1">Thick</span>
               <input type="text" value={row.thickness} onChange={(e) => onUpdate(row.id, 'thickness', e.target.value)}
-                className="apple-input text-center px-2 text-sm" placeholder="T" />
+                className="apple-input text-center px-2 text-sm" placeholder="T" inputMode="numeric" />
             </div>
           </div>
         </div>
@@ -300,20 +307,20 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
             <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Trim H × W</label>
             <div className="flex items-center gap-1">
               <input type="text" value={row.trimHeight} onChange={(e) => onUpdate(row.id, 'trimHeight', e.target.value)}
-                className="apple-input text-center px-2 text-sm" placeholder="TH" />
+                className="apple-input text-center px-2 text-sm" placeholder="TH" inputMode="numeric" />
               <span className="text-black/20 font-bold text-sm">×</span>
               <input type="text" value={row.trimWidth} onChange={(e) => onUpdate(row.id, 'trimWidth', e.target.value)}
-                className="apple-input text-center px-2 text-sm" placeholder="TW" />
+                className="apple-input text-center px-2 text-sm" placeholder="TW" inputMode="numeric" />
             </div>
           </div>
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Gap / Gib</label>
             <div className="flex items-center gap-1">
               <input type="text" value={row.floorGap} onChange={(e) => onUpdate(row.id, 'floorGap', e.target.value)}
-                className="apple-input text-center px-2 text-sm" placeholder="Gap" />
+                className="apple-input text-center px-2 text-sm" placeholder="Gap" inputMode="numeric" />
               <span className="text-black/20 font-bold text-sm">/</span>
               <input type="text" value={row.gibFrameSize} onChange={(e) => onUpdate(row.id, 'gibFrameSize', e.target.value)}
-                className="apple-input text-center px-2 text-sm" placeholder="Gib" />
+                className="apple-input text-center px-2 text-sm" placeholder="Gib" inputMode="numeric" />
             </div>
           </div>
         </div>
@@ -344,7 +351,7 @@ export const DoorRow: React.FC<Props> = ({ row, index, onUpdate, onDelete }) => 
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-black/40 uppercase tracking-tight ml-1">Hardware Code</label>
             <input type="text" value={row.hardwareCode} onChange={(e) => onUpdate(row.id, 'hardwareCode', e.target.value)}
-              className="apple-input text-sm" placeholder="Code" />
+              className="apple-input text-sm" placeholder="Code" inputMode="text" autoComplete="off" />
           </div>
         </div>
 

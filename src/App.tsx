@@ -389,15 +389,16 @@ export default function App() {
                     <ArrowRight className="w-5 h-5" strokeWidth={2.5} />
                   </button>
                 </div>
+
               </div>
             )}
 
             {currentStep === 'SPECS' && (
               <div className="space-y-8 sm:space-y-12">
                 <GlobalSpecsCard specs={order.globalSpecs} onChange={handleGlobalSpecsChange} />
-                <div className="flex justify-between gap-3 pt-2 sm:pt-4">
-                  <button onClick={prevStep} className="apple-button-secondary">Back</button>
-                  <button onClick={nextStep} className="apple-button-primary flex items-center gap-3">
+                <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-2 sm:pt-4">
+                  <button onClick={prevStep} className="apple-button-secondary w-full sm:w-auto">Back</button>
+                  <button onClick={nextStep} className="apple-button-primary w-full sm:w-auto flex items-center justify-center gap-3">
                     Continue
                     <ArrowRight className="w-5 h-5" strokeWidth={2.5} />
                   </button>
@@ -413,9 +414,9 @@ export default function App() {
                   onUpdateRow={updateDoor}
                   onDeleteRow={deleteDoor}
                 />
-                <div className="flex justify-between gap-3 pt-2 sm:pt-4">
-                  <button onClick={prevStep} className="apple-button-secondary">Back</button>
-                  <button onClick={nextStep} className="apple-button-primary flex items-center gap-3">
+                <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 pt-2 sm:pt-4">
+                  <button onClick={prevStep} className="apple-button-secondary w-full sm:w-auto">Back</button>
+                  <button onClick={nextStep} className="apple-button-primary w-full sm:w-auto flex items-center justify-center gap-3">
                     Review Order
                     <ArrowRight className="w-5 h-5" strokeWidth={2.5} />
                   </button>

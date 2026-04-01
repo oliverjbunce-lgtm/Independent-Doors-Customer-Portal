@@ -240,7 +240,7 @@ export const AdminDashboard: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <div className="apple-card p-10 sm:p-16">
+              <div className="apple-card p-4 sm:p-10 lg:p-16">
                 <OrderPreview order={selectedOrder.data} />
               </div>
             </motion.div>
@@ -465,7 +465,7 @@ export const AdminDashboard: React.FC = () => {
               className="w-full max-w-5xl bg-white rounded-[28px] shadow-2xl overflow-hidden my-4"
             >
               {/* Modal header */}
-              <div className="flex items-center justify-between px-8 py-6 border-b border-black/[0.06] bg-white sticky top-0 z-10">
+              <div className="flex items-center justify-between px-4 sm:px-8 py-4 sm:py-6 border-b border-black/[0.06] bg-white sticky top-0 z-10">
                 <div>
                   <div className="flex items-center gap-3 flex-wrap">
                     <h2 className="text-xl font-bold text-black tracking-tight">
@@ -489,13 +489,13 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Spec sheet */}
-              <div className="px-8 py-8">
+              <div className="px-4 sm:px-8 py-5 sm:py-8">
                 <OrderPreview order={reviewingOrder.data} />
               </div>
 
               {/* Floor plan data */}
               {reviewingOrder.floorPlanData && (
-                <div className="px-8 pb-6">
+                <div className="px-4 sm:px-8 pb-5 sm:pb-6">
                   <h3 className="text-sm font-bold text-black/60 uppercase tracking-wider mb-3">Floor Plan Data</h3>
                   {typeof reviewingOrder.floorPlanData === 'string' && (
                     reviewingOrder.floorPlanData.startsWith('data:') || reviewingOrder.floorPlanData.startsWith('http')
@@ -511,7 +511,7 @@ export const AdminDashboard: React.FC = () => {
               )}
 
               {/* Action buttons */}
-              <div className="px-8 pb-8 space-y-4">
+              <div className="px-4 sm:px-8 pb-6 sm:pb-8 space-y-4">
                 <div className="h-px bg-black/[0.06]" />
 
                 {!showChangesForm ? (

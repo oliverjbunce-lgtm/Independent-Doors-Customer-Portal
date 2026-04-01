@@ -32,6 +32,8 @@ export const GlobalSpecsCard: React.FC<Props> = ({ specs, onChange }) => {
                 onChange={(e) => onChange('hingeDetails', e.target.value)}
                 className="apple-input"
                 placeholder="e.g. 3.5' Satin"
+                autoComplete="off"
+                inputMode="text"
               />
             </div>
             <div className="space-y-3">
@@ -42,6 +44,8 @@ export const GlobalSpecsCard: React.FC<Props> = ({ specs, onChange }) => {
                 onChange={(e) => onChange('robeTrackColour', e.target.value)}
                 className="apple-input"
                 placeholder="e.g. White"
+                autoComplete="off"
+                inputMode="text"
               />
             </div>
           </div>
@@ -55,6 +59,8 @@ export const GlobalSpecsCard: React.FC<Props> = ({ specs, onChange }) => {
                 onChange={(e) => onChange('hardwareBrand', e.target.value)}
                 className="apple-input"
                 placeholder="e.g. Gainsborough"
+                autoComplete="off"
+                inputMode="text"
               />
             </div>
             <div className="space-y-3">
@@ -67,6 +73,8 @@ export const GlobalSpecsCard: React.FC<Props> = ({ specs, onChange }) => {
                   onChange={(e) => onChange('handleHeight', e.target.value)}
                   className="apple-input pr-12"
                   placeholder="1000"
+                  autoComplete="off"
+                  inputMode="numeric"
                 />
                 <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-black/20">MM</span>
               </div>

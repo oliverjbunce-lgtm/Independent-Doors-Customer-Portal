@@ -133,12 +133,12 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
             <div className="space-y-3">
               <label className="text-[13px] font-bold text-black/60 ml-1 uppercase tracking-wider">Full Name</label>
               <input required type="text" value={name} onChange={e => setName(e.target.value)}
-                className="apple-input" placeholder="Required" />
+                className="apple-input" placeholder="Required" autoComplete="name" inputMode="text" />
             </div>
             <div className="space-y-3">
               <label className="text-[13px] font-bold text-black/60 ml-1 uppercase tracking-wider">Email Address</label>
               <input disabled type="email" value={user.email}
-                className="apple-input opacity-50 cursor-not-allowed" />
+                className="apple-input opacity-50 cursor-not-allowed" autoComplete="email" inputMode="email" />
             </div>
 
             {/* Company — label adapts to role */}
@@ -149,7 +149,7 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
                   {user.role === 'merchant' ? 'Merchant / Branch' : 'Company Name'}
                 </label>
                 <input type="text" value={company} onChange={e => setCompany(e.target.value)}
-                  className="apple-input" placeholder="Optional" />
+                  className="apple-input" placeholder="Optional" autoComplete="organization" inputMode="text" />
               </div>
             )}
 
@@ -158,7 +158,7 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
                 <Building2 className="w-4 h-4" /> Default Merchant
               </label>
               <input type="text" value={defaultMerchant} onChange={e => setDefaultMerchant(e.target.value)}
-                className="apple-input" placeholder="Optional" />
+                className="apple-input" placeholder="Optional" autoComplete="off" inputMode="text" />
             </div>
 
             <div className="space-y-3">
@@ -166,7 +166,7 @@ export const AccountSettings: React.FC<Props> = ({ user, onUpdate, onReorder, on
                 <MapPin className="w-4 h-4" /> Default Location
               </label>
               <input type="text" value={defaultLocation} onChange={e => setDefaultLocation(e.target.value)}
-                className="apple-input" placeholder="Optional" />
+                className="apple-input" placeholder="Optional" autoComplete="off" inputMode="text" />
             </div>
 
             <div className="space-y-3">

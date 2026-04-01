@@ -89,13 +89,15 @@ export const OrderPreview: React.FC<Props> = ({ order }) => {
         </div>
       </div>
 
-      {/* Full Door Schedule — horizontally scrollable on mobile */}
+      {/* Full Door Schedule */}
       <div className="mb-8 sm:mb-16">
         <h5 className="text-[12px] font-bold text-apple-gray uppercase tracking-tight mb-5 sm:mb-8 flex items-center gap-3">
           <Layers className="w-4 h-4" strokeWidth={2.5} /> Door Schedule
         </h5>
-        <div className="border border-black/[0.05] rounded-[20px] sm:rounded-[32px] overflow-hidden">
-          <div className="overflow-x-auto -webkit-overflow-scrolling-touch">
+
+        {/* Desktop table (md+) */}
+        <div className="hidden md:block border border-black/[0.05] rounded-[20px] sm:rounded-[32px] overflow-hidden">
+          <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse" style={{ minWidth: '680px' }}>
               <thead>
                 <tr className="bg-black/[0.02] border-b border-black/[0.05]">
@@ -140,6 +142,79 @@ export const OrderPreview: React.FC<Props> = ({ order }) => {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Mobile card list (< md) */}
+        <div className="md:hidden space-y-3">
+          {order.doors.length === 0 ? (
+            <p className="text-[15px] text-apple-gray font-medium italic text-center py-8">No doors added to schedule.</p>
+          ) : (
+            order.doors.map((door, i) => (
+              <div key={door.id} className="border border-black/[0.07] rounded-[18px] p-4 bg-white space-y-3">
+                {/* Door header */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-apple-blue/10 text-apple-blue text-[11px] font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                    <span className="text-[15px] font-bold text-black">{door.location || `Door ${i + 1}`}</span>
+                  </div>
+                  <span className="text-[13px] font-bold text-apple-blue">{door.hanging}</span>
+                </div>
+                {/* Dimensions row */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-black/[0.03] rounded-[10px] px-3 py-2 text-center">
+                    <p className="text-[10px] font-bold text-black/30 uppercase tracking-tight">H</p>
+                    <p className="text-[13px] font-bold text-black">{door.height}</p>
+                  </div>
+                  <div className="bg-black/[0.03] rounded-[10px] px-3 py-2 text-center">
+                    <p className="text-[10px] font-bold text-black/30 uppercase tracking-tight">W</p>
+                    <p className="text-[13px] font-bold text-black">{door.width}</p>
+                  </div>
+                  <div className="bg-black/[0.03] rounded-[10px] px-3 py-2 text-center">
+                    <p className="text-[10px] font-bold text-black/30 uppercase tracking-tight">T</p>
+                    <p className="text-[13px] font-bold text-black">{door.thickness}</p>
+                  </div>
+                </div>
+                {/* Details grid */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[13px]">
+                  <div className="flex justify-between">
+                    <span className="text-black/40 font-medium">Finish</span>
+                    <span className="font-semibold text-black">{door.doorFinish}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-black/40 font-medium">Core</span>
+                    <span className="font-semibold text-black">{door.doorCore}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-black/40 font-medium">Frame</span>
+                    <span className="font-semibold text-black">{door.frameType}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-black/40 font-medium">Soft Close</span>
+                    <span className="font-semibold text-black">{door.softClose ? '✓ Yes' : 'No'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-black/40 font-medium">Gap/Gib</span>
+                    <span className="font-semibold text-black">{door.floorGap}/{door.gibFrameSize}</span>
+                  </div>
+                  {(door.trimHeight || door.trimWidth) && (
+                    <div className="flex justify-between">
+                      <span className="text-black/40 font-medium">Trim</span>
+                      <span className="font-semibold text-black">{door.trimHeight}×{door.trimWidth}</span>
+                    </div>
+                  )}
+                  {door.hardwareCode && (
+                    <div className="flex justify-between col-span-2">
+                      <span className="text-black/40 font-medium">Hw Code</span>
+                      <span className="font-semibold text-black">{door.hardwareCode}</span>
+                    </div>
+                  )}
+                </div>
+                {door.notes && (
+                  <p className="text-[12px] text-black/50 font-medium border-t border-black/[0.05] pt-2">{door.notes}</p>
+                )}
+              </div>
+            ))
+          )}
         </div>
       </div>
 
