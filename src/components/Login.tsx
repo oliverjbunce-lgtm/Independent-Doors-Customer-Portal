@@ -87,7 +87,7 @@ interface Props {
 }
 
 export const Login: React.FC<Props> = ({ onLogin }) => {
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [signupStep, setSignupStep] = useState(1);
 
   // Shared fields
@@ -105,6 +105,8 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSent, setForgotSent] = useState(false);
 
   // Resolved company value
   const companyValue = role === 'merchant'
@@ -238,6 +240,24 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    try {
+      await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      setForgotSent(true);
+    } catch {
+      setError('Connection error. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // ── Determine visual step number for dots (staff has 3-step flow) ──────────
 
   const dotStep = role === 'staff' && signupStep >= 3 ? signupStep - 1 : signupStep;
@@ -274,7 +294,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
             <div className="text-center mb-6 sm:mb-8">
               <h1 className="text-2xl sm:text-3xl font-bold text-black tracking-tight">Independent Doors</h1>
               <p className="text-apple-gray font-medium mt-1">
-                {mode === 'login' ? 'Sign in to your portal' : 'Create your trade account'}
+                {mode === 'login' ? 'Sign in to your portal' : mode === 'signup' ? 'Create your trade account' : 'Reset your password'}
               </p>
             </div>
 
@@ -301,6 +321,15 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
                     <input required type="password" value={password} onChange={e => setPassword(e.target.value)}
                       className="apple-input pl-12" placeholder="Required" autoComplete="current-password" />
                   </div>
+                  <div className="flex justify-end pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => { setMode('forgot'); setForgotEmail(email); setForgotSent(false); setError(null); }}
+                      className="text-[13px] font-semibold text-apple-blue hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                 </div>
                 {error && <ErrorBanner message={error} />}
                 <button type="submit" disabled={isLoading}
@@ -310,6 +339,74 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
                     : <><span>Sign In</span><ArrowRight className="w-4 h-4" strokeWidth={3} /></>}
                 </button>
               </form>
+            )}
+
+            {/* ── FORGOT PASSWORD ──────────────────────────────────────────── */}
+            {mode === 'forgot' && (
+              <div className="w-full space-y-5 sm:space-y-6">
+                {forgotSent ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center space-y-4"
+                  >
+                    <div className="w-14 h-14 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center mx-auto">
+                      <ShieldCheck className="w-7 h-7 text-emerald-600" strokeWidth={2} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-black text-base">Check your email</p>
+                      <p className="text-[14px] text-apple-gray font-medium mt-1 leading-relaxed">
+                        We've sent a reset link if that address is registered.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setMode('login'); setForgotSent(false); setError(null); }}
+                      className="text-[13px] font-bold text-apple-blue hover:underline"
+                    >
+                      ← Back to Sign In
+                    </button>
+                  </motion.div>
+                ) : (
+                  <form onSubmit={handleForgotPassword} className="space-y-5">
+                    <p className="text-[14px] text-apple-gray font-medium text-center -mt-2">
+                      Enter your email and we'll send you a reset link.
+                    </p>
+                    <div className="space-y-2">
+                      <label className="text-[13px] font-semibold text-black/60 ml-1">Email</label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/20" strokeWidth={2} />
+                        <input
+                          required
+                          type="email"
+                          value={forgotEmail}
+                          onChange={e => setForgotEmail(e.target.value)}
+                          className="apple-input pl-12"
+                          placeholder="name@company.com"
+                          inputMode="email"
+                          autoComplete="email"
+                          autoCorrect="off"
+                          autoCapitalize="off"
+                        />
+                      </div>
+                    </div>
+                    {error && <ErrorBanner message={error} />}
+                    <button type="submit" disabled={isLoading}
+                      className="apple-button-primary w-full flex items-center justify-center gap-2">
+                      {isLoading ? <Spinner /> : <><span>Send Reset Link</span><ArrowRight className="w-4 h-4" strokeWidth={3} /></>}
+                    </button>
+                    <div className="text-center">
+                      <button
+                        type="button"
+                        onClick={() => { setMode('login'); setError(null); }}
+                        className="text-[13px] font-bold text-apple-blue hover:underline"
+                      >
+                        ← Back to Sign In
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             )}
 
             {/* ── SIGNUP STEP 1 — Basic info ───────────────────────────────── */}
@@ -544,23 +641,25 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
             )}
 
             {/* ── Toggle login/signup ──────────────────────────────────────── */}
-            <button
-              type="button"
-              onClick={() => {
-                if (mode === 'login') {
-                  setMode('signup');
-                  resetSignup();
-                  setError(null);
-                } else {
-                  setMode('login');
-                  resetSignup();
-                  setError(null);
-                }
-              }}
-              className="mt-5 sm:mt-6 text-[13px] font-bold text-apple-blue hover:underline"
-            >
-              {mode === 'login' ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
-            </button>
+            {mode !== 'forgot' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (mode === 'login') {
+                    setMode('signup');
+                    resetSignup();
+                    setError(null);
+                  } else {
+                    setMode('login');
+                    resetSignup();
+                    setError(null);
+                  }
+                }}
+                className="mt-5 sm:mt-6 text-[13px] font-bold text-apple-blue hover:underline"
+              >
+                {mode === 'login' ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
+              </button>
+            )}
 
             <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-black/[0.05] w-full flex items-center justify-center gap-2 text-apple-gray text-[13px] font-medium">
               <ShieldCheck className="w-4 h-4" strokeWidth={2} />

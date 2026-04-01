@@ -4,6 +4,7 @@ import { createClient } from "@libsql/client/http";
 import bcrypt from "bcryptjs";
 import { Resend } from "resend";
 import dotenv from "dotenv";
+import crypto from "crypto";
 
 dotenv.config();
 
@@ -173,6 +174,14 @@ function ensureDbReady(): Promise<void> {
       )
     `);
 
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        token TEXT PRIMARY KEY,
+        userId TEXT NOT NULL,
+        expiresAt INTEGER NOT NULL
+      )
+    `);
+
     // Additive columns — wrapped in try/catch so duplicates are silently ignored
     for (const col of [
       'ALTER TABLE users ADD COLUMN defaultGlobalSpecs TEXT',
@@ -307,6 +316,108 @@ export function createApp() {
     if (!valid) return res.status(401).json({ error: "Invalid email or password" });
 
     res.json(serializeUser(user));
+  });
+
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
+
+    try {
+      const db = getDb();
+      const result = await db.execute({
+        sql: "SELECT id FROM users WHERE email = ?",
+        args: [email.toLowerCase().trim()],
+      });
+      const user = result.rows[0] as any;
+
+      // Always return 200 — don't leak whether the address is registered
+      if (!user) return res.json({ ok: true });
+
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hour
+
+      await db.execute({
+        sql: "INSERT INTO password_reset_tokens (token, userId, expiresAt) VALUES (?, ?, ?)",
+        args: [token, user.id, expiresAt],
+      });
+
+      const resetLink = `https://portal.iddoors.co.nz/reset-password?token=${token}`;
+
+      if (resend) {
+        resend.emails.send({
+          from: FROM_EMAIL,
+          to: email.toLowerCase().trim(),
+          subject: "Reset your Independent Doors portal password",
+          html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="padding:40px 40px 32px;text-align:center;border-bottom:1px solid #f0f0f0;">
+      <img src="https://iddoors.co.nz/wp-content/uploads/2023/11/logo.svg" alt="Independent Doors" style="height:36px;width:auto;margin-bottom:24px;" />
+      <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#000;letter-spacing:-0.5px;">Reset Your Password</h1>
+      <p style="margin:0;font-size:15px;color:#86868b;font-weight:500;">We received a request to reset your password.</p>
+    </div>
+    <div style="padding:32px 40px;text-align:center;">
+      <p style="font-size:15px;color:#333;line-height:1.6;margin:0 0 28px;">
+        Click the button below to set a new password. This link expires in <strong>1 hour</strong>.
+      </p>
+      <a href="${resetLink}" style="display:inline-block;background:#0071e3;color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 32px;border-radius:12px;letter-spacing:-0.2px;">
+        Reset Password
+      </a>
+      <p style="margin:28px 0 0;font-size:13px;color:#aaa;line-height:1.5;">
+        If you didn't request this, you can safely ignore this email.<br>
+        Your password won't change until you click the link above.
+      </p>
+    </div>
+    <div style="padding:20px 40px;background:#f5f5f7;border-top:1px solid #e8e8e8;">
+      <p style="margin:0;font-size:12px;color:#aaa;text-align:center;">Independent Doors Ltd · Customer Portal</p>
+    </div>
+  </div>
+</body>
+</html>`,
+        }).catch((err: Error) => console.error("[email] Password reset email failed:", err.message));
+      }
+
+      res.json({ ok: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/auth/reset-password", async (req, res) => {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ error: "Token and password are required" });
+
+    try {
+      const db = getDb();
+      const result = await db.execute({
+        sql: "SELECT * FROM password_reset_tokens WHERE token = ?",
+        args: [token],
+      });
+      const record = result.rows[0] as any;
+
+      if (!record) return res.status(400).json({ error: "Invalid or expired reset link" });
+      if (Date.now() > Number(record.expiresAt)) {
+        await db.execute({ sql: "DELETE FROM password_reset_tokens WHERE token = ?", args: [token] });
+        return res.status(400).json({ error: "This reset link has expired. Please request a new one." });
+      }
+
+      const hashed = await bcrypt.hash(password, 12);
+      await db.execute({
+        sql: "UPDATE users SET password = ? WHERE id = ?",
+        args: [hashed, record.userId],
+      });
+      await db.execute({
+        sql: "DELETE FROM password_reset_tokens WHERE token = ?",
+        args: [token],
+      });
+
+      res.json({ ok: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
   });
 
   // ── User Profile ────────────────────────────────────────────────────────────
