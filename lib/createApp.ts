@@ -677,6 +677,90 @@ export function createApp() {
     }
   });
 
+  // ── Manager API (Oliver's agency dashboard) ────────────────────────────────
+
+  const managerAuth = (req: any, res: any, next: any) => {
+    const key = req.headers['x-manager-key'];
+    if (!key || key !== process.env.MANAGER_API_KEY) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
+    next();
+  };
+
+  // GET /api/manager/stats — aggregate analytics
+  app.get('/api/manager/stats', managerAuth, async (_req, res) => {
+    try {
+      const db = getDb();
+      const [users, orders] = await Promise.all([
+        db.execute('SELECT role, COUNT(*) as count FROM users GROUP BY role'),
+        db.execute(`SELECT
+          COUNT(*) as total,
+          SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved,
+          SUM(CASE WHEN status = 'pending_review' THEN 1 ELSE 0 END) as pending,
+          SUM(CASE WHEN status = 'changes_requested' THEN 1 ELSE 0 END) as changes_requested,
+          SUM(CASE WHEN created_at > unixepoch('now', '-7 days') THEN 1 ELSE 0 END) as last_7_days,
+          SUM(CASE WHEN created_at > unixepoch('now', '-30 days') THEN 1 ELSE 0 END) as last_30_days
+          FROM orders WHERE (data->>'isDraft' IS NULL OR data->>'isDraft' != 'true')`),
+      ]);
+      const totalUsers = await db.execute('SELECT COUNT(*) as count FROM users');
+      const newUsersWeek = await db.execute(`SELECT COUNT(*) as count FROM users WHERE created_at > unixepoch('now', '-7 days')`);
+      res.json({
+        users: {
+          total: (totalUsers.rows[0] as any).count,
+          byRole: users.rows,
+          newThisWeek: (newUsersWeek.rows[0] as any).count,
+        },
+        orders: orders.rows[0],
+      });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // GET /api/manager/users — all users
+  app.get('/api/manager/users', managerAuth, async (_req, res) => {
+    try {
+      const db = getDb();
+      const result = await db.execute(`SELECT id, email, name, role, company, location, created_at FROM users ORDER BY created_at DESC`);
+      res.json(result.rows);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // PUT /api/manager/users/:id — update user (role, location, etc.)
+  app.put('/api/manager/users/:id', managerAuth, async (req, res) => {
+    try {
+      const db = getDb();
+      const { role, location, company, name } = req.body;
+      await db.execute({
+        sql: 'UPDATE users SET role = COALESCE(?, role), location = COALESCE(?, location), company = COALESCE(?, company), name = COALESCE(?, name) WHERE id = ?',
+        args: [role ?? null, location ?? null, company ?? null, name ?? null, req.params.id],
+      });
+      res.json({ ok: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // DELETE /api/manager/users/:id
+  app.delete('/api/manager/users/:id', managerAuth, async (req, res) => {
+    try {
+      const db = getDb();
+      await db.execute({ sql: 'DELETE FROM users WHERE id = ?', args: [req.params.id] });
+      res.json({ ok: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // GET /api/manager/orders — all orders with user info
+  app.get('/api/manager/orders', managerAuth, async (_req, res) => {
+    try {
+      const db = getDb();
+      const result = await db.execute(`
+        SELECT o.id, o.data, o.status, o.created_at, o.review_notes,
+               u.name as user_name, u.email as user_email, u.location as user_location, u.role as user_role
+        FROM orders o LEFT JOIN users u ON o.user_id = u.id
+        WHERE (o.data->>'isDraft' IS NULL OR o.data->>'isDraft' != 'true')
+        ORDER BY o.created_at DESC LIMIT 200
+      `);
+      res.json(result.rows);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
   // ── Top-level error handler ─────────────────────────────────────────────────
   app.use((err: any, _req: any, res: any, _next: any) => {
     console.error('[express] Unhandled error:', err?.message || err);
