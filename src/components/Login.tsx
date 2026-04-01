@@ -253,7 +253,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
   const cardWidth = isSpecsStep ? 'max-w-3xl' : 'max-w-[440px]';
 
   return (
-    <div className="min-h-screen flex items-start sm:items-center justify-center p-4 sm:p-6 bg-apple-bg">
+    <div className="min-h-screen flex items-start sm:items-center justify-center sm:p-6 bg-white sm:bg-apple-bg pb-safe">
       <AnimatePresence mode="wait">
         <motion.div
           key={cardWidth}
@@ -261,9 +261,9 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.97 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          className={`w-full ${cardWidth} mt-4 sm:mt-0`}
+          className={`w-full ${cardWidth} sm:mt-0`}
         >
-          <div className="apple-card p-6 sm:p-10 flex flex-col items-center">
+          <div className="sm:apple-card p-6 sm:p-10 flex flex-col items-center min-h-screen sm:min-h-0">
 
             {/* Logo */}
             <div className="mb-5 sm:mb-6">
@@ -291,7 +291,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/20" strokeWidth={2} />
                     <input required type="email" value={email} onChange={e => setEmail(e.target.value)}
-                      className="apple-input pl-12" placeholder="name@company.com" />
+                      className="apple-input pl-12" placeholder="name@company.com" inputMode="email" autoComplete="email" autoCorrect="off" autoCapitalize="off" />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -299,7 +299,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/20" strokeWidth={2} />
                     <input required type="password" value={password} onChange={e => setPassword(e.target.value)}
-                      className="apple-input pl-12" placeholder="Required" />
+                      className="apple-input pl-12" placeholder="Required" autoComplete="current-password" />
                   </div>
                 </div>
                 {error && <ErrorBanner message={error} />}
@@ -320,7 +320,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
                   <div className="relative">
                     <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/20" strokeWidth={2} />
                     <input required type="text" value={name} onChange={e => setName(e.target.value)}
-                      className="apple-input pl-12" placeholder="John Doe" />
+                      className="apple-input pl-12" placeholder="John Doe" autoComplete="name" autoCapitalize="words" />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -328,7 +328,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/20" strokeWidth={2} />
                     <input required type="email" value={email} onChange={e => setEmail(e.target.value)}
-                      className="apple-input pl-12" placeholder="name@company.com" />
+                      className="apple-input pl-12" placeholder="name@company.com" inputMode="email" autoComplete="email" autoCorrect="off" autoCapitalize="off" />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -336,7 +336,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black/20" strokeWidth={2} />
                     <input required type="password" value={password} onChange={e => setPassword(e.target.value)}
-                      className="apple-input pl-12" placeholder="Required" />
+                      className="apple-input pl-12" placeholder="Required" autoComplete="current-password" />
                   </div>
                 </div>
                 <div className="space-y-2">

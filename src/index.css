@@ -23,15 +23,15 @@
   }
 
   .apple-button-primary {
-    @apply bg-apple-blue text-white font-semibold rounded-[14px] px-10 py-5 transition-all active:scale-[0.98] hover:brightness-110 disabled:opacity-50;
+    @apply bg-apple-blue text-white font-semibold rounded-[14px] px-6 py-4 sm:px-10 sm:py-5 text-[15px] transition-all active:scale-[0.98] hover:brightness-110 disabled:opacity-50 min-h-[50px];
   }
 
   .apple-button-secondary {
-    @apply bg-black/[0.05] text-apple-blue font-semibold rounded-[14px] px-10 py-5 transition-all active:scale-[0.98] hover:bg-black/[0.08];
+    @apply bg-black/[0.05] text-apple-blue font-semibold rounded-[14px] px-6 py-4 sm:px-10 sm:py-5 text-[15px] transition-all active:scale-[0.98] hover:bg-black/[0.08] min-h-[50px];
   }
 
   .apple-input {
-    @apply w-full bg-black/[0.03] border-none rounded-[14px] px-6 py-5 text-base focus:ring-2 focus:ring-apple-blue/20 transition-all outline-none placeholder:text-black/30;
+    @apply w-full bg-black/[0.03] border-none rounded-[14px] px-4 py-4 sm:px-6 sm:py-5 text-base focus:ring-2 focus:ring-apple-blue/20 transition-all outline-none placeholder:text-black/30 min-h-[50px];
   }
 
   .glass {
@@ -101,4 +101,16 @@
 
 .print-only {
   display: none;
+}
+
+/* Safe area inset for notched phones */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Native mobile feel — remove body background on small screens */
+@media (max-width: 639px) {
+  body {
+    background-color: white !important;
+  }
 }
