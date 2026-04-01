@@ -589,7 +589,7 @@ export function createApp() {
     if (req.headers["x-api-key"] !== IMPORT_API_KEY) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    const { email, doors, jobName } = req.body;
+    const { email, doors, jobName, floorPlanImages } = req.body;
     if (!email || !doors || !Array.isArray(doors)) {
       return res.status(400).json({ error: "email and doors array are required" });
     }
@@ -620,8 +620,8 @@ export function createApp() {
       };
 
       await db.execute({
-        sql: "INSERT INTO orders (id, userId, data, status) VALUES (?, ?, ?, 'draft')",
-        args: [orderId, user.id, JSON.stringify(orderData)],
+        sql: "INSERT INTO orders (id, userId, data, status, floorPlanData) VALUES (?, ?, ?, 'draft', ?)",
+        args: [orderId, user.id, JSON.stringify(orderData), floorPlanImages ? JSON.stringify(floorPlanImages) : null],
       });
 
       res.json({ id: orderId, userId: user.id, portalUrl: "/orders/draft/" + orderId });
