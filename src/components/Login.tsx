@@ -253,7 +253,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
   const cardWidth = isSpecsStep ? 'max-w-3xl' : 'max-w-[440px]';
 
   return (
-    <div className="min-h-screen flex items-start sm:items-center justify-center sm:p-6 bg-white sm:bg-apple-bg pb-safe">
+    <div className="min-h-screen flex items-center justify-center sm:p-6 bg-white sm:bg-apple-bg pb-safe">
       <AnimatePresence mode="wait">
         <motion.div
           key={cardWidth}
@@ -261,9 +261,9 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.97 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          className={`w-full ${cardWidth} sm:mt-0`}
+          className={`w-full ${cardWidth}`}
         >
-          <div className="sm:apple-card p-6 sm:p-10 flex flex-col items-center min-h-screen sm:min-h-0">
+          <div className="sm:apple-card p-6 sm:p-10 flex flex-col items-center">
 
             {/* Logo */}
             <div className="mb-5 sm:mb-6">
