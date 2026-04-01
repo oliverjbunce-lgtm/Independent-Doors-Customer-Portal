@@ -447,9 +447,11 @@ export default function App() {
                       }`}
                     >
                       {isSubmitted ? (
-                        <><CheckCircle2 className="w-6 h-6" strokeWidth={2.5} /> Order Sent</>
+                        <><CheckCircle2 className="w-6 h-6" strokeWidth={2.5} /> {user?.role === 'staff' ? 'Sent for Review' : 'Order Sent'}</>
                       ) : (
-                        <>Confirm and Send <Send className="w-5 h-5" strokeWidth={2.5} /></>
+                        user?.role === 'staff'
+                          ? <>Send for Admin Review <Send className="w-5 h-5" strokeWidth={2.5} /></>
+                          : <>Confirm and Send <Send className="w-5 h-5" strokeWidth={2.5} /></>
                       )}
                     </button>
                   </div>
@@ -510,8 +512,14 @@ export default function App() {
               <CheckCircle2 className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
             <div>
-              <p className="font-bold text-lg tracking-tight text-black">Order Sent Successfully!</p>
-              <p className="text-xs text-black/40 font-semibold uppercase tracking-tight">Merchant notified</p>
+              <p className="font-bold text-lg tracking-tight text-black">
+                {user?.role === 'staff' ? 'Sent for Review!' : 'Order Confirmed!'}
+              </p>
+              <p className="text-xs text-black/40 font-semibold uppercase tracking-tight">
+                {user?.role === 'staff'
+                  ? 'Admin has been notified for review'
+                  : `Independent Doors${user?.location ? ` ${user.location.charAt(0).toUpperCase() + user.location.slice(1)}` : ''} will be in touch`}
+              </p>
             </div>
           </motion.div>
         )}
