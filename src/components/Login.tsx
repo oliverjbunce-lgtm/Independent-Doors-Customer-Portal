@@ -51,8 +51,8 @@ const ROLE_CARDS: {
   {
     value: 'staff',
     icon: Shield,
-    title: 'Independent Doors Staff',
-    description: 'Internal team members at Independent Doors Ltd',
+    title: 'In House',
+    description: 'Internal team members and admin staff',
     color: 'text-apple-blue bg-blue-50 border-blue-200',
   },
 ];
@@ -287,12 +287,12 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
 
             {/* Logo */}
             <div className="mb-5 sm:mb-6">
-              <img src="https://iddoors.co.nz/wp-content/uploads/2023/11/logo.svg" alt="Independent Doors" className="h-9 sm:h-10 w-auto" />
+              <span className="text-2xl font-black tracking-tight text-black">Plan Analyser</span>
             </div>
 
             {/* Title */}
             <div className="text-center mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-black tracking-tight">Independent Doors</h1>
+              
               <p className="text-apple-gray font-medium mt-1">
                 {mode === 'login' ? 'Sign in to your portal' : mode === 'signup' ? 'Create your trade account' : 'Reset your password'}
               </p>
@@ -668,7 +668,7 @@ export const Login: React.FC<Props> = ({ onLogin }) => {
           </div>
 
           <p className="text-center mt-6 sm:mt-8 text-apple-gray text-[12px] font-medium">
-            © {new Date().getFullYear()} Independent Doors Ltd.
+            © {new Date().getFullYear()} Quoflow Ltd.
           </p>
         </motion.div>
       </AnimatePresence>
