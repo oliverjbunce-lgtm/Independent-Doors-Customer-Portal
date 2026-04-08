@@ -246,7 +246,7 @@ export default function App() {
       <header className="glass sticky top-0 z-50 no-print shrink-0 px-3 sm:px-6 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 cursor-pointer min-w-0" onClick={() => setCurrentStep('INFO')}>
-            <span className="text-xl font-black tracking-tight text-black">Plan Analyser</span>
+            <img src="https://iddoors.co.nz/wp-content/uploads/2023/11/logo.svg" alt="Independent Doors" className="h-8 sm:h-10 w-auto shrink-0" />
             <div className="hidden sm:block">
               <p className="text-[10px] text-apple-gray font-semibold uppercase tracking-wider">Order Portal</p>
             </div>
@@ -531,7 +531,7 @@ export default function App() {
               <p className="text-xs text-black/40 font-semibold uppercase tracking-tight">
                 {user?.role === 'staff'
                   ? 'Admin has been notified for review'
-                  : `Our team will be in touch`}
+                  : `Independent Doors${user?.location ? ` ${user.location.charAt(0).toUpperCase() + user.location.slice(1)}` : ''} will be in touch`}
               </p>
             </div>
           </motion.div>
