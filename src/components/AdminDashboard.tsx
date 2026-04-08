@@ -154,7 +154,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
               <div className="text-center">
                 <h1 className="text-2xl font-bold tracking-tight text-black">Admin Access</h1>
-                <p className="text-sm text-apple-gray font-medium mt-1">Customer Portal</p>
+                <p className="text-sm text-apple-gray font-medium mt-1">Independent Doors Portal</p>
               </div>
             </div>
 
@@ -190,7 +190,7 @@ export const AdminDashboard: React.FC = () => {
               <DoorOpen className="text-white w-5 h-5" strokeWidth={2.5} />
             </div>
             <div>
-              <h1 className="text-base font-bold tracking-tight text-black">Portal</h1>
+              <h1 className="text-base font-bold tracking-tight text-black">Independent Doors</h1>
               <p className="text-[10px] text-apple-gray font-semibold uppercase tracking-wider">Admin Dashboard</p>
             </div>
           </div>
@@ -523,7 +523,7 @@ export const AdminDashboard: React.FC = () => {
                     >
                       {reviewActionLoading === 'approve'
                         ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        : <><CheckCircle2 className="w-5 h-5" strokeWidth={2.5} /> Approve &amp; Send Quote</>
+                        : <><CheckCircle2 className="w-5 h-5" strokeWidth={2.5} /> Approve &amp; Send to ID Doors</>
                       }
                     </button>
                     <button
